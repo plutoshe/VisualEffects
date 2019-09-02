@@ -8,6 +8,7 @@
 		_WaveDistance("Distance from player", float) = 10
 		_WaveTrail("Length of the trail", Range(0,5)) = 1
 		_WaveColor("Color", Color) = (1,0,0,1)
+		//_InverseView("InverseView", float4x4) = (1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1)
 	}
 
 	SubShader{
@@ -36,6 +37,7 @@
 			float _WaveDistance;
 			float _WaveTrail;
 			float4 _WaveColor;
+			float4x4 _InverseView;
 
 
 			//the object data that's put into the vertex shader
@@ -61,32 +63,44 @@
 
 			//the fragment shader
 			fixed4 frag(v2f i) : SV_TARGET{
-				//get depth from depth texture
-				float depth = tex2D(_CameraDepthTexture, i.uv).r;
-				//linear depth between camera and far clipping plane
-				depth = Linear01Depth(depth);
-				//depth as distance from camera in units 
-				depth = depth * _ProjectionParams.z;
+				float depth = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv));
 
-				//get source color
+				float2 p11_22 = float2 (unity_CameraProjection._11, unity_CameraProjection._22);
+
+				float3 vpos = float3((i.uv * 2 - 1) / p11_22, -1) * depth;
+				float4 wpos = mul(_InverseView, float4(vpos, 1));
 				fixed4 source = tex2D(_MainTex, i.uv);
-				//skip wave and return source color if we're at the skybox
-				/*if (depth >= _ProjectionParams.z)
-					return source;*/
-				//return fixed4(depth, 0.0, 0.0, 1.0);
-				if (depth >= 10)
+				if (wpos.y > 0)
+				{
 					return source;
-				else
-					return fixed4(1.0, 1.0, 0.0, 1.0);
-				//calculate wave
-				float waveFront = step(depth, _WaveDistance);
-				float waveTrail = smoothstep(_WaveDistance - _WaveTrail, _WaveDistance, depth);
-				float wave = waveFront * waveTrail;
+				}
+				return fixed4(1.0, 1.0, 0.0, 1.0);
+				////get depth from depth texture
+				//float depth = tex2D(_CameraDepthTexture, i.uv).r;
+				////linear depth between camera and far clipping plane
+				//depth = Linear01Depth(depth);
+				////depth as distance from camera in units 
+				//depth = depth * _ProjectionParams.z;
 
-				//mix wave into source color
-				fixed4 col = lerp(source, _WaveColor, wave);
+				////get source color
+				//fixed4 source = tex2D(_MainTex, i.uv);
+				////skip wave and return source color if we're at the skybox
+				///*if (depth >= _ProjectionParams.z)
+				//	return source;*/
+				////return fixed4(depth, 0.0, 0.0, 1.0);
+				//if (depth >= 10)
+				//	return source;
+				//else
+				//	return fixed4(1.0, 1.0, 0.0, 1.0);
+				////calculate wave
+				//float waveFront = step(depth, _WaveDistance);
+				//float waveTrail = smoothstep(_WaveDistance - _WaveTrail, _WaveDistance, depth);
+				//float wave = waveFront * waveTrail;
 
-				return col;
+				////mix wave into source color
+				//fixed4 col = lerp(source, _WaveColor, wave);
+
+				//return col;
 
 			}
 			ENDCG

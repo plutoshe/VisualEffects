@@ -20,6 +20,7 @@ public class FogEffect : MonoBehaviour
     {
         m_cam = GetComponent<Camera>();
         m_cam.depthTextureMode = m_cam.depthTextureMode | DepthTextureMode.Depth;
+        postprocessMaterial.SetMatrix("_InverseView", m_cam.cameraToWorldMatrix);
     }
 
     // Update is called once per frame
