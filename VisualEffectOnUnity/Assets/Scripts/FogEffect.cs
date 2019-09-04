@@ -12,6 +12,7 @@ public class FogEffect : MonoBehaviour
     private bool waveActive;
 
     private float waveDistance = 0;
+    private Vector3 oldPosition;
 
     Camera m_cam;
 
@@ -20,20 +21,21 @@ public class FogEffect : MonoBehaviour
     {
         m_cam = GetComponent<Camera>();
         m_cam.depthTextureMode = m_cam.depthTextureMode | DepthTextureMode.Depth;
+            //DepthTextureMode.Depth;
+        postprocessMaterial.SetVector("_CameraPosition", m_cam.transform.position);
         postprocessMaterial.SetMatrix("_InverseView", m_cam.cameraToWorldMatrix);
+        oldPosition = m_cam.transform.position;
     }
 
     // Update is called once per frame
     private void Update()
     {
-        //if the wave is active, make it move away, otherwise reset it
-        if (waveActive)
+        if (Vector3.Distance(oldPosition, m_cam.transform.position) > 0)
         {
-            waveDistance = waveDistance + waveSpeed * Time.deltaTime;
-        }
-        else
-        {
-            waveDistance = 0;
+            print("!!!");
+            postprocessMaterial.SetVector("_CameraPosition", m_cam.transform.position);
+            postprocessMaterial.SetMatrix("_InverseView", m_cam.cameraToWorldMatrix);
+            oldPosition = m_cam.transform.position;
         }
     }
 

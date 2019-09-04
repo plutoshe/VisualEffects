@@ -38,6 +38,7 @@
 			float _WaveTrail;
 			float4 _WaveColor;
 			float4x4 _InverseView;
+			float4 _CameraPosition;
 
 
 			//the object data that's put into the vertex shader
@@ -61,6 +62,12 @@
 				return o;
 			}
 
+			float distance(float3 pt1, float3 pt2)
+			{
+				float3 v = pt2 - pt1;
+				return sqrt(dot(v, v));
+			}
+
 			//the fragment shader
 			fixed4 frag(v2f i) : SV_TARGET{
 				float depth = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv));
@@ -70,11 +77,37 @@
 				float3 vpos = float3((i.uv * 2 - 1) / p11_22, -1) * depth;
 				float4 wpos = mul(_InverseView, float4(vpos, 1));
 				fixed4 source = tex2D(_MainTex, i.uv);
-				if (wpos.y > 0)
+			
+				//float3 np = wpos - _CameraPosition;
+				/*if (dot(wpos, wpos) < 100)
 				{
-					return source;
+					return  fixed4(dot(wpos, wpos) / 100.0, 0.0, 0.0, 1.0);
+				}*/
+				//lerp(tex2D(_MainTex, i.uv), _FogColor, saturate(exp(-worldPos.y - _Start)* _Density));
+				float height = 10;
+				float4 originalColor = tex2D(_MainTex, i.uv);
+				float4 fogColor = float4(0.8f, 0.9f, 1.0f, 1);
+
+				float di = sqrt(dot(vpos, vpos));
+				
+				
+				if (di < 15)
+				{
+					//return fixed4(di / 15, 1.0, 1.0, 1.0);
+					float fogAmount = min(1, di / 15);
+					return originalColor + (fogColor - originalColor) * fogAmount;
 				}
-				return fixed4(1.0, 1.0, 0.0, 1.0);
+				//wpos.y = wpos.y - _CameraPosition.y;
+				if (wpos.y < height)
+				{	
+					//return lerp(tex2D(_MainTex, i.uv), float4(0.8f,0.9f,1.0f,1), saturate(exp(-wpos.y - _CameraPosition.y)* 0.1f));
+					//return fixed4(1.0, 1.0, 0.0, 1.0);
+					
+					float fogAmount = min(1, (height - wpos.y) / 10); //exp(abs(wpos.y - _CameraPosition.y)) * 0.1f;
+					return originalColor + (fogColor - originalColor) * fogAmount;
+					//return fixed4(1.0, 1.0, 0.0, 1.0);
+				}
+				return source;
 				////get depth from depth texture
 				//float depth = tex2D(_CameraDepthTexture, i.uv).r;
 				////linear depth between camera and far clipping plane
