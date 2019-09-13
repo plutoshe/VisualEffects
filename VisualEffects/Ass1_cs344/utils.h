@@ -8,6 +8,7 @@
 #include <cuda_runtime_api.h>
 #include <cassert>
 #include <cmath>
+#include <algorithm>
 
 #define checkCudaErrors(val) check( (val), #val, __FILE__, __LINE__)
 
@@ -72,7 +73,7 @@ void checkResultsAutodesk(const T* const ref, const T* const gpu, size_t numElem
 
   size_t numBadPixels = 0;
   for (size_t i = 0; i < numElem; ++i) {
-    T smaller = std::min(ref[i], gpu[i]);
+    T smaller = stdLLmin(ref[i], gpu[i]);
     T larger = std::max(ref[i], gpu[i]);
     T diff = larger - smaller;
     if (diff > variance)
