@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ass1_cs344", "Ass1_cs344\As
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcxproj", "{A7C3752F-7F18-4ECB-93CF-8C48C31B0B12}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ass2_cs344", "Ass2_cs344\Ass2_cs344.vcxproj", "{4C276301-8EDE-432C-B8C4-33ED84BFBBD0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -27,6 +29,10 @@ Global
 		{A7C3752F-7F18-4ECB-93CF-8C48C31B0B12}.Debug|x64.Build.0 = Debug|x64
 		{A7C3752F-7F18-4ECB-93CF-8C48C31B0B12}.Release|x64.ActiveCfg = Release|x64
 		{A7C3752F-7F18-4ECB-93CF-8C48C31B0B12}.Release|x64.Build.0 = Release|x64
+		{4C276301-8EDE-432C-B8C4-33ED84BFBBD0}.Debug|x64.ActiveCfg = Debug|x64
+		{4C276301-8EDE-432C-B8C4-33ED84BFBBD0}.Debug|x64.Build.0 = Debug|x64
+		{4C276301-8EDE-432C-B8C4-33ED84BFBBD0}.Release|x64.ActiveCfg = Release|x64
+		{4C276301-8EDE-432C-B8C4-33ED84BFBBD0}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
