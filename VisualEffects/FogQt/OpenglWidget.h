@@ -8,6 +8,8 @@
 #include <QBasicTimer>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
+#include <qpushbutton.h>
+#include <QMainWindow>
 
 class GeometryEngine;
 
@@ -31,6 +33,9 @@ protected:
 	void initShaders();
 	void initTextures();
 
+private slots:
+	void GetTestButtonClicked();
+
 private:
 	QBasicTimer timer;
 	QOpenGLShaderProgram program;
@@ -44,4 +49,7 @@ private:
 	QVector3D rotationAxis;
 	qreal angularSpeed;
 	QQuaternion rotation;
+	QPushButton* test_button;
+
+	bool m_isShowing;
 };

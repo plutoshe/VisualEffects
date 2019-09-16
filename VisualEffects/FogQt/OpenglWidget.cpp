@@ -1,7 +1,7 @@
 #include "OpenglWidget.h"
 
 #include <QMouseEvent>
-
+#include <QVBoxLayout>
 #include <math.h>
 
 OpenglWidget::OpenglWidget(QWidget* parent) :
@@ -10,6 +10,21 @@ OpenglWidget::OpenglWidget(QWidget* parent) :
 	texture(0),
 	angularSpeed(0)
 {
+	//QVBoxLayout* vlay x= new QVBoxLayout(this);
+	test_button = new QPushButton(this);
+	test_button->setText(tr("something"));
+	test_button->setGeometry(QRect(10, 10, 100, 50));
+	connect(test_button, SIGNAL(clicked()), this, SLOT(GetTestButtonClicked()));
+	m_isShowing = true;
+	/*vlay->addWidget(test_button);
+	this->setLayout(vlay);*/
+}
+
+void OpenglWidget::GetTestButtonClicked()
+{
+	qDebug() << "Clicked!";
+	m_isShowing = !m_isShowing;
+	update();
 }
 
 OpenglWidget::~OpenglWidget()
@@ -152,22 +167,26 @@ void OpenglWidget::paintGL()
 {
 	// Clear color and depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	if (m_isShowing)
+	{
 
-	texture->bind();
 
-	//! [6]
-	// Calculate model view transformation
-	QMatrix4x4 matrix;
-	matrix.translate(0.0, 0.0, -5.0);
-	matrix.rotate(rotation);
+		texture->bind();
 
-	// Set modelview-projection matrix
-	program.setUniformValue("mvp_matrix", projection * matrix);
-	//! [6]
+		//! [6]
+		// Calculate model view transformation
+		QMatrix4x4 matrix;
+		matrix.translate(0.0, 0.0, -5.0);
+		matrix.rotate(rotation);
 
-		// Use texture unit 0 which contains cube.png
-	program.setUniformValue("texture", 0);
+		// Set modelview-projection matrix
+		program.setUniformValue("mvp_matrix", projection * matrix);
+		//! [6]
 
-	// Draw cube geometry
-	geometries->drawCubeGeometry(&program);
+			// Use texture unit 0 which contains cube.png
+		program.setUniformValue("texture", 0);
+
+		// Draw cube geometry
+		geometries->drawCubeGeometry(&program);
+	}
 }
