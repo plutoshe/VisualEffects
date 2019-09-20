@@ -12,6 +12,7 @@
 #include <QOpenGLTexture>
 #include <qpushbutton.h>
 #include <QMainWindow>
+#include <QElapsedTimer>
 
 class GeometryEngine;
 
@@ -24,8 +25,9 @@ public:
 	~OpenglWidget();
 
 protected:
-	void mousePressEvent(QMouseEvent* e) override;
 	void keyPressEvent(QKeyEvent* event) override;
+	void keyReleaseEvent(QKeyEvent* event) override;
+	void mousePressEvent(QMouseEvent* e) override;
 	void mouseReleaseEvent(QMouseEvent* e) override;
 	void timerEvent(QTimerEvent* e) override;
 
@@ -40,6 +42,7 @@ private slots:
 	void GetTestButtonClicked();
 
 private:
+	QElapsedTimer calcTimer;
 	QBasicTimer timer;
 	QOpenGLShaderProgram program;
 	GeometryEngine* geometries;
@@ -55,4 +58,6 @@ private:
 	QPushButton* test_button;
 
 	bool m_isShowing;
+	QVector3D m_cameraVelocity;
+	qint64 m_lastTime;
 };

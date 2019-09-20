@@ -23,18 +23,7 @@ OpenglWidget::OpenglWidget(QWidget* parent) :
 void OpenglWidget::GetTestButtonClicked()
 {
 	qDebug() << "Clicked!";
-	glm::mat4 view = m_camera->CreateWorldToCameraTransform();
-	std::string res = "";
-	for (int i = 0; i < 4; i++)
-	{
-		for (int j = 0; j < 4; j++)
-		{ 
-			res += std::to_string(view[i][j]) + " ";
-		}
-		res += "\n";
-	}
-	qDebug() << res.c_str();
-	
+
 	m_isShowing = !m_isShowing;
 	update();
 }
@@ -54,22 +43,43 @@ void OpenglWidget::keyPressEvent(QKeyEvent* event)
 {
 	if (event->key() == Qt::Key_W)
 	{
-		m_camera->AddAxisOffset(glm::vec3(0, 0, 1));
+		m_cameraVelocity += QVector3D(0, 0, 1);
 	}
 	if (event->key() == Qt::Key_S)
 	{
-		m_camera->AddAxisOffset(glm::vec3(0, 0, -1));
+		m_cameraVelocity += QVector3D(0, 0, -1);
 	}
 	if (event->key() == Qt::Key_A)
 	{
-		m_camera->AddAxisOffset(glm::vec3(-1, 0, 0));
+		m_cameraVelocity += QVector3D(-1, 0, 0);
 	}
 	if (event->key() == Qt::Key_D)
 	{
-		m_camera->AddAxisOffset(glm::vec3(1, 0, 0));
+		m_cameraVelocity += QVector3D(1, 0, 0);
 	}
-	update();
-	
+	//update();
+}
+
+
+void OpenglWidget::keyReleaseEvent(QKeyEvent* event)
+{
+	if (event->key() == Qt::Key_W)
+	{
+		m_cameraVelocity -= QVector3D(0, 0, 1);
+	}
+	if (event->key() == Qt::Key_S)
+	{
+		m_cameraVelocity -= QVector3D(0, 0, -1);
+	}
+	if (event->key() == Qt::Key_A)
+	{
+		m_cameraVelocity -= QVector3D(-1, 0, 0);
+	}
+	if (event->key() == Qt::Key_D)
+	{
+		m_cameraVelocity -= QVector3D(1, 0, 0);
+	}
+	//update();
 }
 
 //! [0]
@@ -100,8 +110,9 @@ void OpenglWidget::mouseReleaseEvent(QMouseEvent* e)
 //! [0]
 
 //! [1]
-void OpenglWidget::timerEvent(QTimerEvent*)
+void OpenglWidget::timerEvent(QTimerEvent* t)
 {
+	qint64 currentTime = calcTimer.elapsed();
 	// Decrease angular speed (friction)
 	angularSpeed *= 0.99;
 
@@ -116,6 +127,13 @@ void OpenglWidget::timerEvent(QTimerEvent*)
 		// Request an update
 		update();
 	}
+	if (m_cameraVelocity.length() > 0)
+	{
+		m_camera->AddAxisOffset((currentTime - m_lastTime) / 1000.0 * m_cameraVelocity);
+		qDebug() << (currentTime - m_lastTime) / 1000.0 * m_cameraVelocity;
+		update();
+	}
+	m_lastTime = currentTime;
 }
 //! [1]
 
@@ -138,9 +156,11 @@ void OpenglWidget::initializeGL()
 
 	geometries = new GeometryEngine();
 	m_camera = new CameraEngine();
-	m_camera->SetCameraPosition(glm::vec3(0, 0, -4));
+	m_camera->SetCameraPosition(QVector3D(0, 0, -4));
 	// Use QBasicTimer because its faster than QTimer
 	timer.start(12, this);
+	calcTimer.start();
+	qint64 m_lastTime = calcTimer.elapsed();
 }
 
 //! [3]
@@ -209,8 +229,8 @@ void OpenglWidget::paintGL()
 
 		// Calculate model view transformation
 		QMatrix4x4 matrix;
-		glm::vec3 pos = m_camera->GetCameraPosition();
-		matrix.translate(pos.x, pos.y, pos.z);
+		QVector3D pos = m_camera->GetCameraPosition();
+		matrix.translate(pos);
 		matrix.rotate(rotation);
 
 		// Set modelview-projection matrix
