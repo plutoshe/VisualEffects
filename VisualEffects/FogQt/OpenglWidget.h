@@ -1,5 +1,7 @@
 #pragma once
 #include "GeometryEngine.h"
+#include "CameraEngine.h"
+
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
 #include <QMatrix4x4>
@@ -23,6 +25,7 @@ public:
 
 protected:
 	void mousePressEvent(QMouseEvent* e) override;
+	void keyPressEvent(QKeyEvent* event) override;
 	void mouseReleaseEvent(QMouseEvent* e) override;
 	void timerEvent(QTimerEvent* e) override;
 
@@ -40,7 +43,7 @@ private:
 	QBasicTimer timer;
 	QOpenGLShaderProgram program;
 	GeometryEngine* geometries;
-
+	CameraEngine* m_camera;
 	QOpenGLTexture* texture;
 
 	QMatrix4x4 projection;

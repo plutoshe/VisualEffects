@@ -23,6 +23,18 @@ OpenglWidget::OpenglWidget(QWidget* parent) :
 void OpenglWidget::GetTestButtonClicked()
 {
 	qDebug() << "Clicked!";
+	glm::mat4 view = m_camera->CreateWorldToCameraTransform();
+	std::string res = "";
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{ 
+			res += std::to_string(view[i][j]) + " ";
+		}
+		res += "\n";
+	}
+	qDebug() << res.c_str();
+	
 	m_isShowing = !m_isShowing;
 	update();
 }
@@ -34,7 +46,30 @@ OpenglWidget::~OpenglWidget()
 	makeCurrent();
 	delete texture;
 	delete geometries;
+	delete m_camera;
 	doneCurrent();
+}
+
+void OpenglWidget::keyPressEvent(QKeyEvent* event)
+{
+	if (event->key() == Qt::Key_W)
+	{
+		m_camera->AddAxisOffset(glm::vec3(0, 0, 1));
+	}
+	if (event->key() == Qt::Key_S)
+	{
+		m_camera->AddAxisOffset(glm::vec3(0, 0, -1));
+	}
+	if (event->key() == Qt::Key_A)
+	{
+		m_camera->AddAxisOffset(glm::vec3(-1, 0, 0));
+	}
+	if (event->key() == Qt::Key_D)
+	{
+		m_camera->AddAxisOffset(glm::vec3(1, 0, 0));
+	}
+	update();
+	
 }
 
 //! [0]
@@ -101,8 +136,9 @@ void OpenglWidget::initializeGL()
 	glEnable(GL_CULL_FACE);
 	//! [2]
 
-	geometries = new GeometryEngine;
-
+	geometries = new GeometryEngine();
+	m_camera = new CameraEngine();
+	m_camera->SetCameraPosition(glm::vec3(0, 0, -4));
 	// Use QBasicTimer because its faster than QTimer
 	timer.start(12, this);
 }
@@ -126,9 +162,7 @@ void OpenglWidget::initShaders()
 	if (!program.bind())
 		close();
 }
-//! [3]
 
-//! [4]
 void OpenglWidget::initTextures()
 {
 	// Load cube.png image
@@ -153,7 +187,7 @@ void OpenglWidget::resizeGL(int w, int h)
 	qreal aspect = qreal(w) / qreal(h ? h : 1);
 
 	// Set near plane to 3.0, far plane to 7.0, field of view 45 degrees
-	const qreal zNear = 3.0, zFar = 7.0, fov = 45.0;
+	const qreal zNear = 3.0, zFar = 100.0, fov = 45.0;
 
 	// Reset projection
 	projection.setToIdentity();
@@ -173,10 +207,10 @@ void OpenglWidget::paintGL()
 
 		texture->bind();
 
-		//! [6]
 		// Calculate model view transformation
 		QMatrix4x4 matrix;
-		matrix.translate(0.0, 0.0, -5.0);
+		glm::vec3 pos = m_camera->GetCameraPosition();
+		matrix.translate(pos.x, pos.y, pos.z);
 		matrix.rotate(rotation);
 
 		// Set modelview-projection matrix

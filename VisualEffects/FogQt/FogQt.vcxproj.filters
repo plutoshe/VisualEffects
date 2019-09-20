@@ -48,6 +48,9 @@
     <ClCompile Include="GeometryEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CameraEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="FogQt.ui">
@@ -66,6 +69,9 @@
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_FogQt.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraEngine.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
