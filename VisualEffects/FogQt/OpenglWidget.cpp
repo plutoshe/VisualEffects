@@ -96,16 +96,20 @@ void OpenglWidget::mouseReleaseEvent(QMouseEvent* e)
 
 	// Rotation axis is perpendicular to the mouse position difference
 	// vector
-	QVector3D n = QVector3D(diff.y(), diff.x(), 0.0).normalized();
+	//QVector3D n = QVector3D(diff.y(), diff.x(), 0.0).normalized();
 
-	// Accelerate angular speed relative to the length of the mouse sweep
-	qreal acc = diff.length() / 100.0;
+	//// Accelerate angular speed relative to the length of the mouse sweep
+	//qreal acc = diff.length() / 100.0;
 
-	// Calculate new rotation axis as weighted sum
-	rotationAxis = (rotationAxis * angularSpeed + n * acc).normalized();
+	//// Calculate new rotation axis as weighted sum
+	//rotationAxis = (rotationAxis * angularSpeed + n * acc).normalized();
 
-	// Increase angular speed
-	angularSpeed += acc;
+	//// Increase angular speed
+	//angularSpeed += acc;
+	m_camera->m_Pitch += diff.y() / 20;
+	m_camera->m_Yaw += diff.x() / 20;
+	update();
+		
 }
 //! [0]
 
@@ -114,19 +118,20 @@ void OpenglWidget::timerEvent(QTimerEvent* t)
 {
 	qint64 currentTime = calcTimer.elapsed();
 	// Decrease angular speed (friction)
-	angularSpeed *= 0.99;
+	//angularSpeed *= 0.99;
 
-	// Stop rotation when speed goes below threshold
-	if (angularSpeed < 0.01) {
-		angularSpeed = 0.0;
-	}
-	else {
-		// Update rotation
-		rotation = QQuaternion::fromAxisAndAngle(rotationAxis, angularSpeed) * rotation;
+	//// Stop rotation when speed goes below threshold
+	//if (angularSpeed < 0.01) {
+	//	angularSpeed = 0.0;
+	//}
+	//else {
+	//	// Update rotation
+	rotation = QQuaternion::fromAxisAndAngle(QVector3D(0, 1, 0), m_camera->m_Yaw) *
+		QQuaternion::fromAxisAndAngle(QVector3D(1, 0, 0), m_camera->m_Pitch);
 
-		// Request an update
-		update();
-	}
+	//	// Request an update
+	//	update();
+	//}
 	if (m_cameraVelocity.length() > 0)
 	{
 		m_camera->AddAxisOffset((currentTime - m_lastTime) / 1000.0 * m_cameraVelocity);
@@ -228,13 +233,19 @@ void OpenglWidget::paintGL()
 		texture->bind();
 
 		// Calculate model view transformation
-		QMatrix4x4 matrix;
+		QMatrix4x4 matrixTranslation, matrixRotation;
 		QVector3D pos = m_camera->GetCameraPosition();
-		matrix.translate(pos);
-		matrix.rotate(rotation);
+		bool tmp;
+		//QMatrix4x4 matrix1 = QMatrix4x4::inverted(matrix);
+		
+		matrixTranslation.translate(pos);
+		matrixRotation.rotate(rotation);
+		matrixRotation = matrixRotation.inverted(&tmp);
+		//matrix.rotate(rotation);
+		
 
 		// Set modelview-projection matrix
-		program.setUniformValue("mvp_matrix", projection * matrix);
+		program.setUniformValue("mvp_matrix", projection * matrixRotation * matrixTranslation);
 		//! [6]
 
 			// Use texture unit 0 which contains cube.png
