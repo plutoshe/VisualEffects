@@ -29,6 +29,7 @@ protected:
 	void keyReleaseEvent(QKeyEvent* event) override;
 	void mousePressEvent(QMouseEvent* e) override;
 	void mouseReleaseEvent(QMouseEvent* e) override;
+	void mouseMoveEvent(QMouseEvent* e) override;
 	void timerEvent(QTimerEvent* e) override;
 
 	void initializeGL() override;
@@ -60,4 +61,6 @@ private:
 	bool m_isShowing;
 	QVector3D m_cameraVelocity;
 	qint64 m_lastTime;
+
+
 };

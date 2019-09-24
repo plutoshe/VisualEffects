@@ -21,7 +21,10 @@ public:
 	void AddAxisOffset(QVector3D i_dir);
 	float m_Yaw;
 	float m_Pitch;
-
+	float m_PitchTmpOffset;
+	float m_YawTmpOffset;
+	float CurrentYaw() { return m_Yaw + m_YawTmpOffset;  }
+	float CurrentPitch() { return m_Pitch + m_PitchTmpOffset; }
 private:
 	QVector3D m_position;
 	QVector3D m_direction;

@@ -93,23 +93,22 @@ void OpenglWidget::mouseReleaseEvent(QMouseEvent* e)
 {
 	// Mouse release position - mouse press position
 	QVector2D diff = QVector2D(e->localPos()) - mousePressPosition;
+	auto a = QCursor::pos();
+	auto b = e->localPos();
 
-	// Rotation axis is perpendicular to the mouse position difference
-	// vector
-	//QVector3D n = QVector3D(diff.y(), diff.x(), 0.0).normalized();
-
-	//// Accelerate angular speed relative to the length of the mouse sweep
-	//qreal acc = diff.length() / 100.0;
-
-	//// Calculate new rotation axis as weighted sum
-	//rotationAxis = (rotationAxis * angularSpeed + n * acc).normalized();
-
-	//// Increase angular speed
-	//angularSpeed += acc;
 	m_camera->m_Pitch += diff.y() / 20;
 	m_camera->m_Yaw += diff.x() / 20;
+	m_camera->m_PitchTmpOffset = m_camera->m_YawTmpOffset = 0;
 	update();
 		
+}
+
+void OpenglWidget::mouseMoveEvent(QMouseEvent* e)
+{
+	QVector2D diff = QVector2D(e->localPos()) - mousePressPosition;
+	m_camera->m_PitchTmpOffset = diff.y() / 20;
+	m_camera->m_YawTmpOffset = diff.x() / 20;
+	update();
 }
 //! [0]
 
@@ -119,15 +118,15 @@ void OpenglWidget::timerEvent(QTimerEvent* t)
 	qint64 currentTime = calcTimer.elapsed();
 	// Decrease angular speed (friction)
 	//angularSpeed *= 0.99;
-
+	auto a = QCursor::pos();
 	//// Stop rotation when speed goes below threshold
 	//if (angularSpeed < 0.01) {
 	//	angularSpeed = 0.0;
 	//}
 	//else {
 	//	// Update rotation
-	rotation = QQuaternion::fromAxisAndAngle(QVector3D(0, 1, 0), m_camera->m_Yaw) *
-		QQuaternion::fromAxisAndAngle(QVector3D(1, 0, 0), m_camera->m_Pitch);
+	rotation = QQuaternion::fromAxisAndAngle(QVector3D(0, 1, 0), m_camera->CurrentYaw()) *
+		QQuaternion::fromAxisAndAngle(QVector3D(1, 0, 0), m_camera->CurrentPitch());
 
 	//	// Request an update
 	//	update();
@@ -135,7 +134,6 @@ void OpenglWidget::timerEvent(QTimerEvent* t)
 	if (m_cameraVelocity.length() > 0)
 	{
 		m_camera->AddAxisOffset((currentTime - m_lastTime) / 1000.0 * m_cameraVelocity);
-		qDebug() << (currentTime - m_lastTime) / 1000.0 * m_cameraVelocity;
 		update();
 	}
 	m_lastTime = currentTime;
@@ -165,6 +163,7 @@ void OpenglWidget::initializeGL()
 	// Use QBasicTimer because its faster than QTimer
 	timer.start(12, this);
 	calcTimer.start();
+	this->setMouseTracking(false);
 	qint64 m_lastTime = calcTimer.elapsed();
 }
 
