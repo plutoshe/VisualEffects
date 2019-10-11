@@ -11,6 +11,7 @@
 #include <QMainWindow>
 #include <QElapsedTimer>
 #include <QOpenGLBuffer>
+#include <qglframebufferobject.h>
 
 class StableFluidWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -36,11 +37,15 @@ private:
 	QOpenGLTexture* m_texture;
 	QMatrix4x4 m_projection;
 	QVector2D m_mousePressedPosition;
+	QGLFramebufferObject* m_renderTexture, *m_renderTexture1;
+	GLuint m_framebufferName;
+	GLuint colorTextId;
 	// time setting
 	qint64 m_lastTime;
 	qreal m_deltaTime;
 	// buffer data setting
 	QOpenGLBuffer m_arrayBuf;
 	QOpenGLBuffer m_indexBuf;
-
+	bool m_initial;
+	QBasicTimer m_timer;
 };
