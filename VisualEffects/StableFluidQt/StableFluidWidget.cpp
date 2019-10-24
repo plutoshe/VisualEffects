@@ -4,15 +4,7 @@ struct VertexData
 	QVector3D position;
 	QVector2D texCoord;
 };
-VertexData vertices[] = {
-	{QVector3D(-1.0f, -1.0f,  0.0f), QVector2D(0.0f, 0.0f)},
-	{QVector3D(1.0f, -1.0f,  0.0f), QVector2D(1.f, 0.0f)},
-	{QVector3D(-1.0f,  1.0f,  0.0f), QVector2D(0.f, 1.f)},
-	{QVector3D(1.0f,  1.0f,  0.0f), QVector2D(1.f, 1.f)},
 
-};
-//GLushort indices[] = { 0, 1, 2, 1, 3, 2 };
-GLushort indices[] = { 0, 1, 2, 3, 3 };
 
 StableFluidWidget::StableFluidWidget(QWidget* parent) :
 	m_indexBuf(QOpenGLBuffer::IndexBuffer),
@@ -44,15 +36,15 @@ void StableFluidWidget::timerEvent(QTimerEvent* t)
 
 void StableFluidWidget::initGeometry()
 {
-
+	m_geometry = static_cast<cGeometry>(SquraGeometry());
 	m_arrayBuf.create();
-	m_indexBuf.create();
 	m_arrayBuf.bind();
-	m_arrayBuf.allocate(vertices, 4 * sizeof(VertexData));
+	m_arrayBuf.allocate(&m_geometry.m_vertices[0], m_geometry.m_vertices.size() * sizeof(cGeometryVertex));
 
 	// Transfer index data to VBO 1
+	m_indexBuf.create();
 	m_indexBuf.bind();
-	m_indexBuf.allocate(indices, 6 * sizeof(GLushort));
+	m_indexBuf.allocate(&m_geometry.m_indices[0], m_geometry.m_indices.size() * sizeof(GLuint));
 }
 
 void StableFluidWidget::initializeGL()
@@ -134,22 +126,22 @@ void StableFluidWidget::paintGL()
 		// Tell OpenGL programmable pipeline how to locate vertex position data
 		int vertexLocation = m_program.attributeLocation("i_position");
 		m_program.enableAttributeArray(vertexLocation);
-		m_program.setAttributeBuffer(vertexLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
+		m_program.setAttributeBuffer(vertexLocation, GL_FLOAT, offset, 3, sizeof(cGeometryVertex));
 
 		// Offset for texture coordinate
-		offset += sizeof(QVector3D);
+		offset += 3 * sizeof(float);
 
 		// Tell OpenGL programmable pipeline how to locate vertex texture coordinate data
 		int texcoordLocation = m_program.attributeLocation("i_texcoord");
 		m_program.enableAttributeArray(texcoordLocation);
-		m_program.setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(VertexData));
+		m_program.setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(cGeometryVertex));
 
 		glActiveTexture(GL_TEXTURE0);
 
 		m_texture->bind();
 		m_program.setUniformValue("texture", 0);
 		m_renderTexture->bind();
-		glDrawElements(GL_TRIANGLE_STRIP, 5, GL_UNSIGNED_SHORT, 0);
+		glDrawElements(GL_TRIANGLES, m_geometry.m_indices.size(), GL_UNSIGNED_INT, 0);
 		
 
 		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -162,10 +154,12 @@ void StableFluidWidget::paintGL()
 	{
 		glBindTexture(GL_TEXTURE_2D, m_renderTexture1->texture());
 		m_renderTexture1->bind();
-		glDrawElements(GL_TRIANGLE_STRIP, 5, GL_UNSIGNED_SHORT, 0);
+		//glDrawElements(GL_TRIANGLE_STRIP, 5, GL_UNSIGNED_SHORT, 0);
+		glDrawElements(GL_TRIANGLES, m_geometry.m_indices.size(), GL_UNSIGNED_INT, 0);
 		//glBindTexture(GL_TEXTURE_2D, m_renderTexture->texture());
 		m_renderTexture1->bindDefault();
-		glDrawElements(GL_TRIANGLE_STRIP, 5, GL_UNSIGNED_SHORT, 0);
+		//glDrawElements(GL_TRIANGLE_STRIP, 5, GL_UNSIGNED_SHORT, 0);
+		glDrawElements(GL_TRIANGLES, m_geometry.m_indices.size(), GL_UNSIGNED_INT, 0);
 		//if (hasOpenGLFramebufferBlit())
 		QRect rect(0, 0, this->width(), this->height()); 
 		

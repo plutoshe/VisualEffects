@@ -88,7 +88,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Geometry.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="SquraGeometry.cpp" />
     <ClCompile Include="StableFluidQt.cpp" />
     <ClCompile Include="StableFluidWidget.cpp" />
   </ItemGroup>
@@ -103,6 +105,10 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="StableFluidWidget.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Geometry.h" />
+    <ClInclude Include="SquraGeometry.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

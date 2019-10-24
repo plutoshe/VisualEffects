@@ -12,6 +12,7 @@
 #include <QElapsedTimer>
 #include <QOpenGLBuffer>
 #include <qglframebufferobject.h>
+#include "SquraGeometry.h"
 
 class StableFluidWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -48,4 +49,5 @@ private:
 	QOpenGLBuffer m_indexBuf;
 	bool m_initial;
 	QBasicTimer m_timer;
+	cGeometry m_geometry;
 };
