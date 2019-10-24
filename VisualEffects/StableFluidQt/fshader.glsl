@@ -7,15 +7,18 @@ precision mediump float;
 uniform sampler2D texture;
 varying vec2 v_speed;
 varying vec2 v_texcoord;
-
+uniform float i_time;
+uniform float i_deltaTime;
+uniform vec2 i_forceOrigin;
+uniform float i_forceExponent;
 void main()
 {
-    vec4 c = texture2D(texture, v_texcoord + v_speed * 0.01f);
-    c.x += 0.003f;
-    c.y += 0.003f;
-    c.z += 0.003f;
-    c.x -= 1.0f - step(c.x, 1.0f);
-    c.y -= 1.0f - step(c.y, 1.0f);
-    c.z -= 1.0f - step(c.z, 1.0f);
-    gl_FragColor = c;
+    vec3 color = texture2D(texture, v_texcoord);
+    // + v_speed * 0.01f);
+    vec3 dye = saturate(sin(i_time * vec3(2.72, 5.12, 4.98)) + 0.5);
+    vec2 pos = v_texcoord;
+    float amp = exp(-i_forceExponent * distance(i_forceOrigin, pos));
+    color = lerp(color, dye, saturate(amp));
+
+    gl_FragColor = vec4(color, 1.0);
 }

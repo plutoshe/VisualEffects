@@ -32,6 +32,7 @@ StableFluidWidget::~StableFluidWidget()
 void StableFluidWidget::timerEvent(QTimerEvent* t)
 {
 	qint64 currentTime = m_calcTimer.elapsed();
+	m_time = currentTime / 1000.0;
 	m_deltaTime = (currentTime - m_lastTime) / 1000.0;
 	update();
 	m_lastTime = currentTime;
@@ -120,6 +121,12 @@ void StableFluidWidget::paintGL()
 {
 	// Clear color and depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	m_program.setUniformValue("i_time", (float)m_time);
+	m_program.setUniformValue("i_deltaTime", (float)m_deltaTime);
+	m_program.setUniformValue("i_forceOrigin", QVector2D(0.5, 0.5));
+	m_program.setUniformValue("i_forceExponent", 200.0f);
+
 	// Draw cube geometry using indices from VBO 1
 	if (!m_initial)
 	{
@@ -149,6 +156,8 @@ void StableFluidWidget::paintGL()
 		int speedLocation = m_program.attributeLocation("i_speed");
 		m_program.enableAttributeArray(speedLocation);
 		m_program.setAttributeBuffer(speedLocation, GL_FLOAT, offset, 2, sizeof(QVector2D));
+		
+
 		m_indexBuf.bind();
 		glActiveTexture(GL_TEXTURE0);
 

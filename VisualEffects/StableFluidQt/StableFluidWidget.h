@@ -52,4 +52,5 @@ private:
 	QBasicTimer m_timer;
 	cGeometry m_geometry;
 	int m_width, m_height;
+	qreal m_time;
 };
