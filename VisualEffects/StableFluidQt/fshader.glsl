@@ -5,11 +5,12 @@ precision mediump float;
 #endif
 
 uniform sampler2D texture;
+varying vec2 v_speed;
 varying vec2 v_texcoord;
 
 void main()
 {
-    vec4 c = texture2D(texture, v_texcoord);
+    vec4 c = texture2D(texture, v_texcoord + v_speed * 0.01f);
     c.x += 0.003f;
     c.y += 0.003f;
     c.z += 0.003f;

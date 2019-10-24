@@ -45,9 +45,11 @@ private:
 	qint64 m_lastTime;
 	qreal m_deltaTime;
 	// buffer data setting
+	QOpenGLBuffer m_speedBuf;
 	QOpenGLBuffer m_arrayBuf;
 	QOpenGLBuffer m_indexBuf;
 	bool m_initial;
 	QBasicTimer m_timer;
 	cGeometry m_geometry;
+	int m_width, m_height;
 };

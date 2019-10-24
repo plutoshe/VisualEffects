@@ -11,6 +11,8 @@ StableFluidWidget::StableFluidWidget(QWidget* parent) :
 	QOpenGLWidget(parent),
 	m_texture(0)
 {
+	m_width = 100;
+	m_height = 100;
 	makeCurrent();
 }
 
@@ -21,6 +23,7 @@ StableFluidWidget::~StableFluidWidget()
 	makeCurrent();
 	m_arrayBuf.destroy();
 	m_indexBuf.destroy();
+	m_speedBuf.destroy();
 
 	delete m_texture;
 	doneCurrent();
@@ -36,7 +39,8 @@ void StableFluidWidget::timerEvent(QTimerEvent* t)
 
 void StableFluidWidget::initGeometry()
 {
-	m_geometry = static_cast<cGeometry>(SquraGeometry());
+
+	m_geometry = static_cast<cGeometry>(SquraGeometry(m_width, m_height));
 	m_arrayBuf.create();
 	m_arrayBuf.bind();
 	m_arrayBuf.allocate(&m_geometry.m_vertices[0], m_geometry.m_vertices.size() * sizeof(cGeometryVertex));
@@ -45,6 +49,11 @@ void StableFluidWidget::initGeometry()
 	m_indexBuf.create();
 	m_indexBuf.bind();
 	m_indexBuf.allocate(&m_geometry.m_indices[0], m_geometry.m_indices.size() * sizeof(GLuint));
+
+	m_speedBuf.create();
+	m_speedBuf.bind();
+	std::vector<QVector2D> speed((m_width + 1) * (m_height + 1), QVector2D(0.1,0.1));
+	m_speedBuf.allocate(&speed[0], m_geometry.m_vertices.size() * sizeof(QVector2D));
 }
 
 void StableFluidWidget::initializeGL()
@@ -118,8 +127,8 @@ void StableFluidWidget::paintGL()
 
 
 		m_arrayBuf.bind();
-		m_indexBuf.bind();
-
+		
+		
 		// Offset for position
 		quintptr offset = 0;
 
@@ -136,6 +145,11 @@ void StableFluidWidget::paintGL()
 		m_program.enableAttributeArray(texcoordLocation);
 		m_program.setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(cGeometryVertex));
 
+		m_speedBuf.bind();
+		int speedLocation = m_program.attributeLocation("i_speed");
+		m_program.enableAttributeArray(speedLocation);
+		m_program.setAttributeBuffer(speedLocation, GL_FLOAT, offset, 2, sizeof(QVector2D));
+		m_indexBuf.bind();
 		glActiveTexture(GL_TEXTURE0);
 
 		m_texture->bind();
