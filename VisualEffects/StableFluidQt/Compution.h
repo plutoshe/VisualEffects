@@ -10,7 +10,7 @@ namespace Fluid
 
 		float Clamp(float i_value, float i_min, float i_max);
 		int get1Dpos(int i, int j, int stride);
-		void Advect(int i_n, int i_m, int i_deltaTime, const vectorFiledGrid &i_u, vectorFiledGrid& o_u);
+		void Advect(int i_n, int i_m, float i_deltaTime, const vectorFiledGrid &i_u, vectorFiledGrid& o_u);
 
 		void Diffuse(int i_n, int i_m, float i_alpha, float i_beta, const vectorFiledGrid& i_origin, const vectorFiledGrid& i_grid, vectorFiledGrid& o_grid);
 
@@ -20,6 +20,9 @@ namespace Fluid
 		void ProjectStart(int i_n, int i_m, float i_h, const vectorFiledGrid& i_grid, scalarFieldGrid& o_div, scalarFieldGrid& o_p);
 
 		void ProjectFinish(int i_n, int i_m, float i_h, const vectorFiledGrid& i_v, const scalarFieldGrid& i_p, vectorFiledGrid& o_v);
+
+		void SetBoundry(int i_n, int i_m, vectorFiledGrid& o_v);
+		void SetBoundry(int i_n, int i_m, scalarFieldGrid& o_v);
 	}
 }
 

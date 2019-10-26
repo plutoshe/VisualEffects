@@ -159,7 +159,7 @@ void StableFluidWidget::paintGL()
 
 
 	m_interVelocity = m_velocity;
-	float m_vicosityParam = 1e-5;
+	float m_vicosityParam = 1e-8;
 	float m_forceExponentParam = 200;
 	
 	//float dif_alpha = m_deltaTime* m_vicosityParam* m_width* m_height;
@@ -176,13 +176,14 @@ void StableFluidWidget::paintGL()
 	for (int i = 0; i < 20; i++)
 	{
 		Fluid::Compution::Diffuse(m_height, m_width, dif_alpha, /*dif_alpha * 4 + 1*/ 4 + dif_alpha, m_velocity, m_interVelocity, m_interVelocity);
+		Fluid::Compution::SetBoundry(m_height, m_width, m_interVelocity);
 	}
 	m_previousMousePosition = m_mousePosition;
 	m_mousePosition = QVector2D(QCursor::pos().x() * 1.0 / this->width(), 1-QCursor::pos().y() * 1.0/ this->height());
 	QVector2D m_forceVector(0, 0);
 	if (m_isPressed)
 	{
-		m_forceVector = (m_mousePosition - m_previousMousePosition) * 200;
+		m_forceVector = (m_mousePosition - m_previousMousePosition) * 300;
 	}
 	
 	Fluid::Compution::AddForce(
@@ -196,9 +197,10 @@ void StableFluidWidget::paintGL()
 	{	
 		Fluid::Compution::ProjectStart(m_height, m_width, 1.0 / m_height, m_interVelocity, m_div, m_P);
 
-		for (int i = 0; i < 20; i++)
+		for (int i = 0; i < 40; i++)
 		{
-			Fluid::Compution::Diffuse(m_height, m_width, /*1, 4,*/ 1.0 / (m_width * m_height), 4, m_div, m_P, m_P);
+			Fluid::Compution::Diffuse(m_height, m_width, /*1, 4,*/ 1.0 / m_height, 4, m_div, m_P, m_P);
+			Fluid::Compution::SetBoundry(m_height, m_width, m_P);
 		}
 
 		Fluid::Compution::ProjectFinish(m_height, m_width, 1.0 / m_height, m_interVelocity, m_P, m_velocity);
@@ -208,7 +210,7 @@ void StableFluidWidget::paintGL()
 	m_program.setUniformValue("i_time", (float)m_time);
 	m_program.setUniformValue("i_deltaTime", (float)m_deltaTime);
 	m_program.setUniformValue("i_forceOrigin", m_mousePosition + (!m_isPressed) * QVector2D(2.0,2.0));
-	m_program.setUniformValue("i_forceExponent", 200.0f);
+	m_program.setUniformValue("i_forceExponent",300.0f);
 
 	// Draw cube geometry using indices from VBO 1
 	if (!m_initial)

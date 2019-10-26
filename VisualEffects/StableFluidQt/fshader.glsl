@@ -13,7 +13,7 @@ uniform vec2 i_forceOrigin;
 uniform float i_forceExponent;
 void main()
 {
-    vec3 color = texture2D(texture, v_texcoord - v_speed * 0.01f);
+    vec3 color = texture2D(texture, v_texcoord - v_speed * i_deltaTime);
     //vec3 color = texture2D(texture, v_texcoord+ v_speed * 0.01f);
     // );
     vec3 dye = saturate(sin(i_time * vec3(2.72, 5.12, 4.98)) + 0.5);
@@ -22,4 +22,6 @@ void main()
     color = lerp(color, dye, saturate(amp));
 
     gl_FragColor = vec4(color, 1.0);
+    // float gamma = 2.2;
+    // gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(1.0/gamma));
 }
