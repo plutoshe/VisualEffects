@@ -33,6 +33,9 @@ protected:
 	void initShaders();
 	void initTextures();
 	void initGeometry();
+
+	void mousePressEvent(QMouseEvent* e) override;
+	void mouseReleaseEvent(QMouseEvent* e) override;
 private:
 	QElapsedTimer m_calcTimer;
 	QOpenGLShaderProgram m_program;
@@ -54,7 +57,9 @@ private:
 	cGeometry m_geometry;
 	int m_width, m_height;
 	qreal m_time;
-	Fluid::Compution::scalarGrid m_velocity, m_density;
-	Fluid::Compution::scalarGrid m_interVelocity;
-	Fluid::Compution::floatGrid m_P;
+	Fluid::Compution::vectorFiledGrid m_velocity, m_density;
+	Fluid::Compution::vectorFiledGrid m_interVelocity;
+	Fluid::Compution::scalarFieldGrid m_P, m_div;
+	QVector2D m_mousePosition, m_previousMousePosition;
+	bool m_isPressed;
 };

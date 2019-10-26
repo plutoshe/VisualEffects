@@ -41,7 +41,7 @@ void StableFluidWidget::timerEvent(QTimerEvent* t)
 void StableFluidWidget::initGeometry()
 {
 
-	m_geometry = static_cast<cGeometry>(SquraGeometry(m_width, m_height));
+	m_geometry = static_cast<cGeometry>(SquraGeometry(m_width + 1, m_height + 1));
 	m_arrayBuf.create();
 	m_arrayBuf.bind();
 	m_arrayBuf.allocate(&m_geometry.m_vertices[0], m_geometry.m_vertices.size() * sizeof(cGeometryVertex));
@@ -53,12 +53,12 @@ void StableFluidWidget::initGeometry()
 
 	m_speedBuf.create();
 	m_speedBuf.bind();
-	//std::vector<QVector2D> speed((m_width + 1) * (m_height + 1), QVector2D(0.1,0.1));
-	m_velocity.clear();
-	m_velocity.assign(m_height + 2, std::vector<QVector2D>(m_width + 2, QVector2D(0, 0)));
-	m_density.clear();
-	m_density.assign(m_height + 2, std::vector<QVector2D>(m_width + 2, QVector2D(0, 0)));
-	
+	m_velocity = Fluid::Compution::vectorFiledGrid(m_geometry.m_vertices.size(), QVector2D(0, 0));
+	m_density = Fluid::Compution::vectorFiledGrid(m_geometry.m_vertices.size(), QVector2D(0, 0));
+	m_div = Fluid::Compution::scalarFieldGrid(m_geometry.m_vertices.size(), 0);
+	m_P = Fluid::Compution::scalarFieldGrid(m_geometry.m_vertices.size(), 0);
+	m_speedBuf.allocate(&m_velocity[0], m_geometry.m_vertices.size());
+
 }
 
 void StableFluidWidget::initializeGL()
@@ -121,6 +121,18 @@ void StableFluidWidget::initTextures()
 void StableFluidWidget::resizeGL(int w, int h)
 {}
 
+
+void StableFluidWidget::mousePressEvent(QMouseEvent* e)
+{
+	m_isPressed = true;
+}
+
+void StableFluidWidget::mouseReleaseEvent(QMouseEvent* e)
+{
+	m_isPressed = false;
+
+}
+
 void StableFluidWidget::paintGL()
 {
 	// Clear color and depth buffer
@@ -139,31 +151,42 @@ void StableFluidWidget::paintGL()
 	SWAP(u0, u); SWAP(v0, v);
 	advect(N, 1, u, u0, u0, v0, dt); advect(N, 2, v, v0, u0, v0, dt);
 	project(N, u, v, u0, v0);*/
-	Fluid::Compution::Advect();
-	Fluid::Compution::AddForce(m_height,m_width, )
-	for (int i = 0; i < 40; i++)
+	//Fluid::Compution::Advect();
+	//var dx = 1.0f / ResolutionY;
+	//float dif_alpha = dx * dx / (_viscosity * dt);
+	m_interVelocity = m_velocity;
+	float m_vicosityParam = 1e-6;
+	float m_forceExponentParam = 200;
+	float dif_alpha = m_deltaTime* m_vicosityParam* m_width* m_height;
+
+	for (int i = 0; i < 20; i++)
 	{
-		Fluid::Compution::Diffuse(m_height, m_width, -dx*dx, 4, m_velocity, VFB.V2, VFB.V2)
+		Fluid::Compution::Diffuse(m_height, m_width, dif_alpha, dif_alpha * 4 + 1, m_velocity, m_interVelocity, m_interVelocity);
 	}
+	m_previousMousePosition = m_mousePosition;
+	m_mousePosition = QVector2D(QCursor::pos().x(), QCursor::pos().y());
+	if (m_isPressed)
+	{
+		Fluid::Compution::AddForce(m_height, m_width, m_mousePosition, m_forceExponentParam, (m_mousePosition - m_previousMousePosition) * 300, m_interVelocity, m_interVelocity);
+	}
+
 	// Project part
 	{	
-		Fluid::Compution::ProjectFinish(m_height, m_width, VFB.v3, m_p, VFB.v2);
+		Fluid::Compution::ProjectStart(m_height, m_width, 1.0 / m_height, m_interVelocity, m_div, m_P);
 
-		for (int i = 0; i < 40; i++)
+		for (int i = 0; i < 20; i++)
 		{
-			Fluid::Compution::Diffuse(m_height, m_width, -dx * dx, 4, VFB.V2, m_P, m_P);
+			Fluid::Compution::Diffuse(m_height, m_width, 1, 4, m_div, m_P, m_P);
 		}
-		Fluid::Compution::ProjectFinish(m_height, m_width, 0.5, m_interVelocity, m_P, m_velocity);
 
-		Fluid::Compution::ProjectFinish(m_height, m_width, 0.5, m_interVelocity, m_P, m_velocity);
+		//Fluid::Compution::ProjectFinish(m_height, m_width, 0.5, m_interVelocity, m_P, m_velocity);
 	}
 
 	m_program.setUniformValue("i_time", (float)m_time);
 	m_program.setUniformValue("i_deltaTime", (float)m_deltaTime);
-	m_program.setUniformValue("i_forceOrigin", QVector2D(0.5, 0.5));
+	m_program.setUniformValue("i_forceOrigin", QVector2D(0.5f,0.5f));
 	m_program.setUniformValue("i_forceExponent", 200.0f);
-	m_speedBuf.bind();
-	m_speedBuf.allocate(&m_velocity[0], m_geometry.m_vertices.size());
+
 	// Draw cube geometry using indices from VBO 1
 	if (!m_initial)
 	{
@@ -190,6 +213,7 @@ void StableFluidWidget::paintGL()
 		m_program.setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(cGeometryVertex));
 
 		m_speedBuf.bind();
+		m_speedBuf.write(0, &m_velocity[0], m_geometry.m_vertices.size());
 		int speedLocation = m_program.attributeLocation("i_speed");
 		m_program.enableAttributeArray(speedLocation);
 		m_program.setAttributeBuffer(speedLocation, GL_FLOAT, offset, 2, sizeof(QVector2D));
