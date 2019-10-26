@@ -155,6 +155,9 @@ void StableFluidWidget::paintGL()
 	//Fluid::Compution::Advect();
 	//var dx = 1.0f / ResolutionY;
 	//float dif_alpha = dx * dx / (_viscosity * dt);
+
+
+
 	m_interVelocity = m_velocity;
 	float m_vicosityParam = 1e-5;
 	float m_forceExponentParam = 200;
@@ -167,6 +170,9 @@ void StableFluidWidget::paintGL()
 	double paramB = m_deltaTime * m_vicosityParam;
 	double dif_alpha = (double(1.0)) / (m_width * m_height) / (paramB);
 	
+
+	Fluid::Compution::Advect(m_height, m_width, m_deltaTime, m_velocity, m_velocity);
+
 	for (int i = 0; i < 20; i++)
 	{
 		Fluid::Compution::Diffuse(m_height, m_width, dif_alpha, /*dif_alpha * 4 + 1*/ 4 + dif_alpha, m_velocity, m_interVelocity, m_interVelocity);
@@ -179,15 +185,6 @@ void StableFluidWidget::paintGL()
 		m_forceVector = (m_mousePosition - m_previousMousePosition) * 200;
 	}
 	
-	if (m_forceVector.length() > 0)
-	{
-		int i = 0;
-	}
-	qDebug() << m_velocity[104];
-	if (m_interVelocity[104].x() != 0)
-	{
-		int x = 0;
-	}
 	Fluid::Compution::AddForce(
 		m_height,
 		m_width,
@@ -207,17 +204,10 @@ void StableFluidWidget::paintGL()
 		Fluid::Compution::ProjectFinish(m_height, m_width, 1.0 / m_height, m_interVelocity, m_P, m_velocity);
 	}
 	
-	for (int i = 104; i < m_velocity.size(); i++)
-	{
-		if (isnan(m_velocity[i].x()))
-		{
-			int j;
-		}
-	}
 
 	m_program.setUniformValue("i_time", (float)m_time);
 	m_program.setUniformValue("i_deltaTime", (float)m_deltaTime);
-	m_program.setUniformValue("i_forceOrigin", QVector2D(0.5f,0.5f));
+	m_program.setUniformValue("i_forceOrigin", m_mousePosition + (!m_isPressed) * QVector2D(2.0,2.0));
 	m_program.setUniformValue("i_forceExponent", 200.0f);
 
 	// Draw cube geometry using indices from VBO 1

@@ -17,7 +17,7 @@ int Fluid::Compution::get1Dpos(int i, int j, int stride)
 	return i * stride + j;
 }
 
-void Fluid::Compution::Advect(int i_n, int i_m, int i_deltaTime, vectorFiledGrid i_u, vectorFiledGrid i_grid, vectorFiledGrid& o_grid)
+void Fluid::Compution::Advect(int i_n, int i_m, int i_deltaTime, const vectorFiledGrid& i_u, vectorFiledGrid& o_u)
 {
 	for (int i = 1; i <= i_n; i++)
 	{
@@ -29,9 +29,9 @@ void Fluid::Compution::Advect(int i_n, int i_m, int i_deltaTime, vectorFiledGrid
 			int bi0 = (int)backtracePosition.x(); int bj0 = (int)backtracePosition.y();
 			int bi1 = bi0 + 1; int bj1 = bj0 + 1;
 			float s0 = backtracePosition.x() - bi0; float t0 = backtracePosition.y() - bj0;
-			o_grid[get1Dpos(i, j, i_m + 2)] =
-				s0 * (t0 * i_grid[get1Dpos(bi0, bj0, i_m + 2)] + (1 - t0) * i_grid[get1Dpos(bi0, bj1, i_m + 2)]) +
-				(1 - s0) * (t0 * i_grid[get1Dpos(bi1, bj0, i_m + 2)] + (1 - t0) * i_grid[get1Dpos(bi1, bj1, i_m + 2)]);
+			o_u[get1Dpos(i, j, i_m + 2)] =
+				s0 * (t0 * i_u[get1Dpos(bi0, bj0, i_m + 2)] + (1 - t0) * i_u[get1Dpos(bi0, bj1, i_m + 2)]) +
+				(1 - s0) * (t0 * i_u[get1Dpos(bi1, bj0, i_m + 2)] + (1 - t0) * i_u[get1Dpos(bi1, bj1, i_m + 2)]);
 		}
 	}
 
@@ -76,7 +76,7 @@ void Fluid::Compution::AddForce(int i_n, int i_m, QVector2D i_forceOrigin, float
 		{
 			auto a = i_forceOrigin.distanceToPoint(QVector2D(i * 1.0 / i_n, j * 1.0 / i_m));
 			auto b = QVector2D(i * 1.0 / i_n, j * 1.0 / i_m);
-			float amp = exp(-i_forceExponennt * i_forceOrigin.distanceToPoint(QVector2D(i * 1.0 / i_n, j * 1.0/ i_m)));
+			float amp = exp(-i_forceExponennt * i_forceOrigin.distanceToPoint(QVector2D(j * 1.0 / i_m, i * 1.0 / i_n)));
 			
 			o_grid[get1Dpos(i, j, i_m + 2)] = i_grid[get1Dpos(i, j, i_m + 2)] + i_forceVector * amp;
 		}
@@ -119,6 +119,11 @@ void Fluid::Compution::ProjectFinish(int i_n, int i_m, float i_h, const vectorFi
 			if (i == i_n) o_v[get1Dpos(i_n + 1, j, i_m + 2)] = -u;
 			if (j == i_m) o_v[get1Dpos(i, i_m + 1, i_m + 2)] = -u;
 		}
+
+		o_v[get1Dpos(0, 0, i_m + 2)] = 0.5 * (o_v[get1Dpos(1, 0, i_m + 2)] + o_v[get1Dpos(0, 1, i_m + 2)]);
+		o_v[get1Dpos(0, i_m + 1, i_m + 2)] = 0.5 * (o_v[get1Dpos(1, i_m + 1, i_m + 2)] + o_v[get1Dpos(0, i_m, i_m + 2)]);
+		o_v[get1Dpos(i_n + 1, 0, i_m + 2)] = 0.5 * (o_v[get1Dpos(i_n, 0, i_m + 2)] + o_v[get1Dpos(i_n + 1, 1, i_m + 2)]);
+		o_v[get1Dpos(i_n + 1, i_m + 1, i_m + 2)] = 0.5 * (o_v[get1Dpos(i_n, i_m + 1, i_m + 2)] + o_v[get1Dpos(i_n + 1, i_m, i_m + 2)]);
 	}
 }
  

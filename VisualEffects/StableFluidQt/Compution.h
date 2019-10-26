@@ -10,7 +10,7 @@ namespace Fluid
 
 		float Clamp(float i_value, float i_min, float i_max);
 		int get1Dpos(int i, int j, int stride);
-		void Advect(int i_n, int i_m, int i_deltaTime, vectorFiledGrid i_u, vectorFiledGrid i_grid, vectorFiledGrid& o_grid);
+		void Advect(int i_n, int i_m, int i_deltaTime, const vectorFiledGrid &i_u, vectorFiledGrid& o_u);
 
 		void Diffuse(int i_n, int i_m, float i_alpha, float i_beta, const vectorFiledGrid& i_origin, const vectorFiledGrid& i_grid, vectorFiledGrid& o_grid);
 
