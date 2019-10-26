@@ -157,28 +157,37 @@ void StableFluidWidget::paintGL()
 	//float dif_alpha = dx * dx / (_viscosity * dt);
 	m_interVelocity = m_velocity;
 	float m_vicosityParam = 1e-5;
-	float m_forceExponentParam = 30;
-	qDebug() << m_deltaTime;
+	float m_forceExponentParam = 200;
+	
 	//float dif_alpha = m_deltaTime* m_vicosityParam* m_width* m_height;
-	float dif_alpha = 1.0 / (m_width * m_height) / (static_cast<float>(m_deltaTime) * m_vicosityParam);
-
+	if (m_deltaTime == 0)
+	{
+		m_deltaTime = 0.000001f;
+	}
+	double paramB = m_deltaTime * m_vicosityParam;
+	double dif_alpha = (double(1.0)) / (m_width * m_height) / (paramB);
+	
 	for (int i = 0; i < 20; i++)
 	{
 		Fluid::Compution::Diffuse(m_height, m_width, dif_alpha, /*dif_alpha * 4 + 1*/ 4 + dif_alpha, m_velocity, m_interVelocity, m_interVelocity);
 	}
 	m_previousMousePosition = m_mousePosition;
-	m_mousePosition = QVector2D(QCursor::pos().x() * 1.0 / this->width(), QCursor::pos().y() * 1.0/ this->height());
+	m_mousePosition = QVector2D(QCursor::pos().x() * 1.0 / this->width(), 1-QCursor::pos().y() * 1.0/ this->height());
 	QVector2D m_forceVector(0, 0);
 	if (m_isPressed)
 	{
 		m_forceVector = (m_mousePosition - m_previousMousePosition) * 200;
 	}
-	qDebug() << m_mousePosition << m_forceVector.length();
+	
 	if (m_forceVector.length() > 0)
 	{
 		int i = 0;
 	}
-	qDebug() << (m_mousePosition - m_previousMousePosition) * 100;
+	qDebug() << m_velocity[104];
+	if (m_interVelocity[104].x() != 0)
+	{
+		int x = 0;
+	}
 	Fluid::Compution::AddForce(
 		m_height,
 		m_width,
@@ -197,6 +206,7 @@ void StableFluidWidget::paintGL()
 
 		Fluid::Compution::ProjectFinish(m_height, m_width, 1.0 / m_height, m_interVelocity, m_P, m_velocity);
 	}
+	
 	for (int i = 104; i < m_velocity.size(); i++)
 	{
 		if (isnan(m_velocity[i].x()))
