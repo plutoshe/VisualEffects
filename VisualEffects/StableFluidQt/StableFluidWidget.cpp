@@ -53,8 +53,12 @@ void StableFluidWidget::initGeometry()
 
 	m_speedBuf.create();
 	m_speedBuf.bind();
-	std::vector<QVector2D> speed((m_width + 1) * (m_height + 1), QVector2D(0.1,0.1));
-	m_speedBuf.allocate(&speed[0], m_geometry.m_vertices.size() * sizeof(QVector2D));
+	//std::vector<QVector2D> speed((m_width + 1) * (m_height + 1), QVector2D(0.1,0.1));
+	m_velocity.clear();
+	m_velocity.assign(m_height + 2, std::vector<QVector2D>(m_width + 2, QVector2D(0, 0)));
+	m_density.clear();
+	m_density.assign(m_height + 2, std::vector<QVector2D>(m_width + 2, QVector2D(0, 0)));
+	
 }
 
 void StableFluidWidget::initializeGL()
@@ -122,11 +126,44 @@ void StableFluidWidget::paintGL()
 	// Clear color and depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	/*density step
+	add_source(N, x, x0, dt);
+	SWAP(x0, x); diffuse(N, 0, x, x0, diff, dt);
+	SWAP(x0, x); advect(N, 0, x, x0, u, v, dt)*/
+
+	/*velocity step
+	add_source(N, u, u0, dt); add_source(N, v, v0, dt);
+	SWAP(u0, u); diffuse(N, 1, u, u0, visc, dt);
+	SWAP(v0, v); diffuse(N, 2, v, v0, visc, dt);
+	project(N, u, v, u0, v0);
+	SWAP(u0, u); SWAP(v0, v);
+	advect(N, 1, u, u0, u0, v0, dt); advect(N, 2, v, v0, u0, v0, dt);
+	project(N, u, v, u0, v0);*/
+	Fluid::Compution::Advect();
+	Fluid::Compution::AddForce(m_height,m_width, )
+	for (int i = 0; i < 40; i++)
+	{
+		Fluid::Compution::Diffuse(m_height, m_width, -dx*dx, 4, m_velocity, VFB.V2, VFB.V2)
+	}
+	// Project part
+	{	
+		Fluid::Compution::ProjectFinish(m_height, m_width, VFB.v3, m_p, VFB.v2);
+
+		for (int i = 0; i < 40; i++)
+		{
+			Fluid::Compution::Diffuse(m_height, m_width, -dx * dx, 4, VFB.V2, m_P, m_P);
+		}
+		Fluid::Compution::ProjectFinish(m_height, m_width, 0.5, m_interVelocity, m_P, m_velocity);
+
+		Fluid::Compution::ProjectFinish(m_height, m_width, 0.5, m_interVelocity, m_P, m_velocity);
+	}
+
 	m_program.setUniformValue("i_time", (float)m_time);
 	m_program.setUniformValue("i_deltaTime", (float)m_deltaTime);
 	m_program.setUniformValue("i_forceOrigin", QVector2D(0.5, 0.5));
 	m_program.setUniformValue("i_forceExponent", 200.0f);
-
+	m_speedBuf.bind();
+	m_speedBuf.allocate(&m_velocity[0], m_geometry.m_vertices.size());
 	// Draw cube geometry using indices from VBO 1
 	if (!m_initial)
 	{

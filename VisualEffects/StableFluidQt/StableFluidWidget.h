@@ -13,6 +13,7 @@
 #include <QOpenGLBuffer>
 #include <qglframebufferobject.h>
 #include "SquraGeometry.h"
+#include "Compution.h"
 
 class StableFluidWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -53,4 +54,7 @@ private:
 	cGeometry m_geometry;
 	int m_width, m_height;
 	qreal m_time;
+	Fluid::Compution::scalarGrid m_velocity, m_density;
+	Fluid::Compution::scalarGrid m_interVelocity;
+	Fluid::Compution::floatGrid m_P;
 };
