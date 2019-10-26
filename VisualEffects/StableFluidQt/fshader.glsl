@@ -13,7 +13,7 @@ uniform vec2 i_forceOrigin;
 uniform float i_forceExponent;
 void main()
 {
-    vec3 color = texture2D(texture, v_texcoord);
+    vec3 color = texture2D(texture, v_texcoord + v_speed * 0.01f);
     //vec3 color = texture2D(texture, v_texcoord+ v_speed * 0.01f);
     // );
     //vec3 dye = saturate(sin(i_time * vec3(2.72, 5.12, 4.98)) + 0.5);

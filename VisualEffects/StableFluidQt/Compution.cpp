@@ -1,5 +1,5 @@
 #include "Compution.h"
-
+#include <qdebug.h>
 float Fluid::Compution::Clamp(float i_value, float i_min, float i_max)
 {
 	if (i_value < i_min)
@@ -43,7 +43,12 @@ void Fluid::Compution::Diffuse(int i_n, int i_m, float i_alpha, float i_beta, co
 	{
 		for (int j = 1; j <= i_m; j++)
 		{
-			o_grid[get1Dpos(i, j, i_m + 2)] = (i_origin[get1Dpos(i, j, i_m + 2)] + i_alpha * (i_grid[get1Dpos(i - 1, j, i_m + 2)] + i_grid[get1Dpos(i, j - 1, i_m + 2)] + i_grid[get1Dpos(i + 1, j, i_m + 2)] + i_grid[get1Dpos(i, j + 1, i_m + 2)])) / i_beta;
+			o_grid[get1Dpos(i, j, i_m + 2)] = 
+				(i_origin[get1Dpos(i, j, i_m + 2)] * i_alpha +
+				i_grid[get1Dpos(i - 1, j, i_m + 2)] + 
+				i_grid[get1Dpos(i, j - 1, i_m + 2)] + 
+				i_grid[get1Dpos(i + 1, j, i_m + 2)] + 
+				i_grid[get1Dpos(i, j + 1, i_m + 2)]) / i_beta;
 		}
 	}
 }
@@ -54,7 +59,12 @@ void Fluid::Compution::Diffuse(int i_n, int i_m, float i_alpha, float i_beta, co
 	{
 		for (int j = 1; j <= i_m; j++)
 		{
-			o_grid[get1Dpos(i, j, i_m + 2)] = (i_origin[get1Dpos(i, j, i_m + 2)] + i_alpha * (i_grid[get1Dpos(i - 1, j, i_m + 2)] + i_grid[get1Dpos(i, j - 1, i_m + 2)] + i_grid[get1Dpos(i + 1, j, i_m + 2)] + i_grid[get1Dpos(i, j + 1, i_m + 2)])) / i_beta;
+			o_grid[get1Dpos(i, j, i_m + 2)] = 
+				(i_origin[get1Dpos(i, j, i_m + 2)] * i_alpha +  
+				i_grid[get1Dpos(i - 1, j, i_m + 2)] + 
+				i_grid[get1Dpos(i, j - 1, i_m + 2)] + 
+				i_grid[get1Dpos(i + 1, j, i_m + 2)] + 
+				i_grid[get1Dpos(i, j + 1, i_m + 2)]) / i_beta;
 		}
 	}
 }
@@ -64,7 +74,10 @@ void Fluid::Compution::AddForce(int i_n, int i_m, QVector2D i_forceOrigin, float
 	{
 		for (int j = 1; j <= i_m; j++)
 		{
-			float amp = exp(-i_forceExponennt * i_forceOrigin.distanceToPoint(QVector2D(i, j)));
+			auto a = i_forceOrigin.distanceToPoint(QVector2D(i * 1.0 / i_n, j * 1.0 / i_m));
+			auto b = QVector2D(i * 1.0 / i_n, j * 1.0 / i_m);
+			float amp = exp(-i_forceExponennt * i_forceOrigin.distanceToPoint(QVector2D(i * 1.0 / i_n, j * 1.0/ i_m)));
+			
 			o_grid[get1Dpos(i, j, i_m + 2)] = i_grid[get1Dpos(i, j, i_m + 2)] + i_forceVector * amp;
 		}
 
@@ -91,7 +104,20 @@ void Fluid::Compution::ProjectFinish(int i_n, int i_m, float i_h, const vectorFi
 {
 	for (int i = 1; i <= i_n; i++) {
 		for (int j = 1; j <= i_m; j++) {
-			o_v[get1Dpos(i, j, i_m + 2)] = i_v[get1Dpos(i, j, i_m + 2)], 0.5 * QVector2D(i_p[get1Dpos(i + 1, j, i_m + 2)] - i_p[get1Dpos(i - 1, j, i_m + 2)], i_p[get1Dpos(i, j + 1, i_m + 2)] - i_p[get1Dpos(i, j - 1, i_m + 2)]) / i_h;
+			float p1 = i_p[get1Dpos(std::max(1, i - 1), j, i_m + 2)];
+			float p2 = i_p[get1Dpos(std::min(i + 1, i_n), j, i_m + 2)];
+			float p3 = i_p[get1Dpos(i, std::max(1, j - 1), i_m + 2)];
+			float p4 = i_p[get1Dpos(i, std::min(i_m, j + 1), i_m + 2)];
+			
+			QVector2D u = i_v[get1Dpos(i, j, i_m + 2)] -
+				0.5 * QVector2D(
+					p1 - p2,
+					p3 - p4) / i_h;
+			o_v[get1Dpos(i, j, i_m + 2)] = u;
+			if (i == 1) o_v[get1Dpos(0, j, i_m + 2)] = -u;
+			if (j == 1) o_v[get1Dpos(i, 0, i_m + 2)] = -u;
+			if (i == i_n) o_v[get1Dpos(i_n + 1, j, i_m + 2)] = -u;
+			if (j == i_m) o_v[get1Dpos(i, i_m + 1, i_m + 2)] = -u;
 		}
 	}
 }

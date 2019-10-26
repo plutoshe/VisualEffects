@@ -47,7 +47,7 @@ private:
 	GLuint colorTextId;
 	// time setting
 	qint64 m_lastTime;
-	qreal m_deltaTime;
+	float m_deltaTime;
 	// buffer data setting
 	QOpenGLBuffer m_speedBuf;
 	QOpenGLBuffer m_arrayBuf;
