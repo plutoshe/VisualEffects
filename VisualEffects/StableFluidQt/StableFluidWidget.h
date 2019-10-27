@@ -58,8 +58,8 @@ private:
 	int m_width, m_height;
 	qreal m_time;
 	Fluid::Compution::vectorFiledGrid m_velocity, m_density;
-	Fluid::Compution::vectorFiledGrid m_interVelocity;
-	Fluid::Compution::scalarFieldGrid m_P, m_div;
-	QVector2D m_mousePosition, m_previousMousePosition;
+	Fluid::Compution::vectorFiledGrid m_interVelocity1, m_interVelocity2;
+	Fluid::Compution::scalarFieldGrid m_P1, m_P2, m_div;
+	QVector2D m_mousePositionForScreen, m_mousePositionForVelocity, m_previousMousePositionForVelocity;
 	bool m_isPressed;
 };

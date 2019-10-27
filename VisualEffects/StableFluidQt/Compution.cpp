@@ -23,7 +23,6 @@ void Fluid::Compution::Advect(int i_n, int i_m, float i_deltaTime, const vectorF
 	{
 		for (int j = 1; j <= i_m; j++)
 		{
-			
 			QVector2D backtracePosition = QVector2D(i - i_deltaTime * i_u[get1Dpos(i, j, i_m + 2)].x() * i_n, j - i_deltaTime * i_u[get1Dpos(i, j, i_m + 2)].y() * i_m);
 			if (i_u[get1Dpos(i, j, i_m + 2)].x() != 0)
 			{
@@ -31,7 +30,7 @@ void Fluid::Compution::Advect(int i_n, int i_m, float i_deltaTime, const vectorF
 				int j = 0;
 			}
 			backtracePosition.setX(Clamp(backtracePosition.x(), 0.5, i_n + 0.5));
-			backtracePosition.setY(Clamp(backtracePosition.y(), 0.5, i_n + 0.5));
+			backtracePosition.setY(Clamp(backtracePosition.y(), 0.5, i_m + 0.5));
 			int bi0 = (int)backtracePosition.x(); int bj0 = (int)backtracePosition.y();
 			int bi1 = bi0 + 1; int bj1 = bj0 + 1;
 			float s1 = backtracePosition.x() - bi0; float t1 = backtracePosition.y() - bj0;
@@ -81,7 +80,7 @@ void Fluid::Compution::AddForce(int i_n, int i_m, QVector2D i_forceOrigin, float
 	{
 		for (int j = 1; j <= i_m; j++)
 		{
-			float amp = exp(-i_forceExponennt * i_forceOrigin.distanceToPoint(QVector2D(j * 1.0 / i_m, i * 1.0 / i_n)));
+			float amp = exp(-i_forceExponennt * i_forceOrigin.distanceToPoint(QVector2D(i * 1.0 / i_n, j * 1.0 / i_m)));
 			
 			o_grid[get1Dpos(i, j, i_m + 2)] = i_grid[get1Dpos(i, j, i_m + 2)] + i_forceVector * amp;
 		}
@@ -111,6 +110,7 @@ void Fluid::Compution::SetBoundry(int i_n, int i_m, vectorFiledGrid& o_v)
 {
 	for (int i = 1; i <= i_m; i++)
 	{
+		int l = get1Dpos(1, i, i_m + 2);
 		QVector2D data = o_v[get1Dpos(1, i, i_m + 2)];
 		o_v[get1Dpos(0, i, i_m + 2)] = QVector2D(-data.x(), data.y());
 		data = o_v[get1Dpos(i_n + 1, i, i_m + 2)];
@@ -121,7 +121,7 @@ void Fluid::Compution::SetBoundry(int i_n, int i_m, vectorFiledGrid& o_v)
 		QVector2D data = o_v[get1Dpos(i, 1, i_m + 2)];
 		o_v[get1Dpos(i, 0, i_m + 2)] = QVector2D(data.x(), -data.y());
 		data = o_v[get1Dpos(i, i_m, i_m + 2)];
-		o_v[get1Dpos(i, i_m + 1, i_m + 2)] = QVector2D(-data.x(), data.y());
+		o_v[get1Dpos(i, i_m + 1, i_m + 2)] = QVector2D(data.x(), -data.y());
 	}
 	o_v[get1Dpos(0, 0, i_m + 2)] = 0.5 * (o_v[get1Dpos(1, 0, i_m + 2)] + o_v[get1Dpos(0, 1, i_m + 2)]);
 	o_v[get1Dpos(0, i_m + 1, i_m + 2)] = 0.5 * (o_v[get1Dpos(1, i_m + 1, i_m + 2)] + o_v[get1Dpos(0, i_m, i_m + 2)]);
@@ -141,10 +141,10 @@ void Fluid::Compution::SetBoundry(int i_n, int i_m, scalarFieldGrid& o_v)
 		o_v[get1Dpos(i, 0, i_m + 2)] = o_v[get1Dpos(i, 1, i_m + 2)];
 		o_v[get1Dpos(i, i_m + 1, i_m + 2)] = o_v[get1Dpos(i, i_m, i_m + 2)];
 	}
-	o_v[get1Dpos(0, 0, i_m + 2)] = 0.5 * (o_v[get1Dpos(1, 0, i_m + 2)] + o_v[get1Dpos(0, 1, i_m + 2)]);
-	o_v[get1Dpos(0, i_m + 1, i_m + 2)] = 0.5 * (o_v[get1Dpos(1, i_m + 1, i_m + 2)] + o_v[get1Dpos(0, i_m, i_m + 2)]);
-	o_v[get1Dpos(i_n + 1, 0, i_m + 2)] = 0.5 * (o_v[get1Dpos(i_n, 0, i_m + 2)] + o_v[get1Dpos(i_n + 1, 1, i_m + 2)]);
-	o_v[get1Dpos(i_n + 1, i_m + 1, i_m + 2)] = 0.5 * (o_v[get1Dpos(i_n, i_m + 1, i_m + 2)] + o_v[get1Dpos(i_n + 1, i_m, i_m + 2)]);
+	o_v[get1Dpos(0, 0, i_m + 2)] = 0.5f * (o_v[get1Dpos(1, 0, i_m + 2)] + o_v[get1Dpos(0, 1, i_m + 2)]);
+	o_v[get1Dpos(0, i_m + 1, i_m + 2)] = 0.5f * (o_v[get1Dpos(1, i_m + 1, i_m + 2)] + o_v[get1Dpos(0, i_m, i_m + 2)]);
+	o_v[get1Dpos(i_n + 1, 0, i_m + 2)] = 0.5f * (o_v[get1Dpos(i_n, 0, i_m + 2)] + o_v[get1Dpos(i_n + 1, 1, i_m + 2)]);
+	o_v[get1Dpos(i_n + 1, i_m + 1, i_m + 2)] = 0.5f * (o_v[get1Dpos(i_n, i_m + 1, i_m + 2)] + o_v[get1Dpos(i_n + 1, i_m, i_m + 2)]);
 }
 
 void Fluid::Compution::ProjectFinish(int i_n, int i_m, float i_h, const vectorFiledGrid& i_v, const scalarFieldGrid& i_p, vectorFiledGrid& o_v)
@@ -161,18 +161,19 @@ void Fluid::Compution::ProjectFinish(int i_n, int i_m, float i_h, const vectorFi
 					p2 - p1,
 					p4 - p3) / i_h;
 			o_v[get1Dpos(i, j, i_m + 2)] = u;
-			if (i == 1) o_v[get1Dpos(0, j, i_m + 2)] = QVector2D(-u.x(), u.y());
-			if (j == 1) o_v[get1Dpos(i, 0, i_m + 2)] = QVector2D(u.x(), -u.y());
-			if (i == i_n) o_v[get1Dpos(i_n + 1, j, i_m + 2)] = QVector2D(-u.x(), u.y());
-			if (j == i_m) o_v[get1Dpos(i, i_m + 1, i_m + 2)] = QVector2D(u.x(), -u.y());
+			//if (i == 1) o_v[get1Dpos(0, j, i_m + 2)] = QVector2D(-u.x(), u.y());
+			//if (j == 1) o_v[get1Dpos(i, 0, i_m + 2)] = QVector2D(u.x(), -u.y());
+			//if (i == i_n) o_v[get1Dpos(i_n + 1, j, i_m + 2)] = QVector2D(-u.x(), u.y());
+			//if (j == i_m) o_v[get1Dpos(i, i_m + 1, i_m + 2)] = QVector2D(u.x(), -u.y());
 			
 		}
 
 	
 	}
-	o_v[get1Dpos(0, 0, i_m + 2)] = 0.5 * (o_v[get1Dpos(1, 0, i_m + 2)] + o_v[get1Dpos(0, 1, i_m + 2)]);
-	o_v[get1Dpos(0, i_m + 1, i_m + 2)] = 0.5 * (o_v[get1Dpos(1, i_m + 1, i_m + 2)] + o_v[get1Dpos(0, i_m, i_m + 2)]);
-	o_v[get1Dpos(i_n + 1, 0, i_m + 2)] = 0.5 * (o_v[get1Dpos(i_n, 0, i_m + 2)] + o_v[get1Dpos(i_n + 1, 1, i_m + 2)]);
-	o_v[get1Dpos(i_n + 1, i_m + 1, i_m + 2)] = 0.5 * (o_v[get1Dpos(i_n, i_m + 1, i_m + 2)] + o_v[get1Dpos(i_n + 1, i_m, i_m + 2)]);
+	SetBoundry(i_n, i_m, o_v);
+	//o_v[get1Dpos(0, 0, i_m + 2)] = 0.5 * (o_v[get1Dpos(1, 0, i_m + 2)] + o_v[get1Dpos(0, 1, i_m + 2)]);
+	//o_v[get1Dpos(0, i_m + 1, i_m + 2)] = 0.5 * (o_v[get1Dpos(1, i_m + 1, i_m + 2)] + o_v[get1Dpos(0, i_m, i_m + 2)]);
+	//o_v[get1Dpos(i_n + 1, 0, i_m + 2)] = 0.5 * (o_v[get1Dpos(i_n, 0, i_m + 2)] + o_v[get1Dpos(i_n + 1, 1, i_m + 2)]);
+	//o_v[get1Dpos(i_n + 1, i_m + 1, i_m + 2)] = 0.5 * (o_v[get1Dpos(i_n, i_m + 1, i_m + 2)] + o_v[get1Dpos(i_n + 1, i_m, i_m + 2)]);
 }
  

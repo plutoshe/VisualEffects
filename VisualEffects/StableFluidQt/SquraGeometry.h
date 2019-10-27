@@ -13,7 +13,7 @@ public:
 			for (int j = 0; j <= w; j++)
 			{
 
-				m_vertices.push_back(cGeometryVertex(-1 + 2.0 * j / w, -1 + 2.0 * i / h, 0, 1.0 * j / w, 1.0 / h * i));
+				m_vertices.push_back(cGeometryVertex(-1 + 2.0 * j / w, -1 + 2.0 * i / h, 0, 1.0 * j / w, 1.0 * i / h));
 
 			}
 		}
