@@ -24,11 +24,7 @@ void Fluid::Compution::Advect(int i_n, int i_m, float i_deltaTime, const vectorF
 		for (int j = 1; j <= i_m; j++)
 		{
 			QVector2D backtracePosition = QVector2D(i - i_deltaTime * i_u[get1Dpos(i, j, i_m + 2)].x() * i_n, j - i_deltaTime * i_u[get1Dpos(i, j, i_m + 2)].y() * i_m);
-			if (i_u[get1Dpos(i, j, i_m + 2)].x() != 0)
-			{
-				auto gg = i_u[get1Dpos(i, j, i_m + 2)];
-				int j = 0;
-			}
+
 			backtracePosition.setX(Clamp(backtracePosition.x(), 0.5, i_n + 0.5));
 			backtracePosition.setY(Clamp(backtracePosition.y(), 0.5, i_m + 0.5));
 			int bi0 = (int)backtracePosition.x(); int bj0 = (int)backtracePosition.y();
@@ -88,24 +84,6 @@ void Fluid::Compution::AddForce(int i_n, int i_m, QVector2D i_forceOrigin, float
 	}
 }
 
-void Fluid::Compution::ProjectStart(int i_n, int i_m, float i_h, const vectorFiledGrid& i_grid, scalarFieldGrid& o_div, scalarFieldGrid& o_p)
-{
-	for (int i = 1; i <= i_n; i++) {
-		for (int j = 1; j <= i_m; j++) {
-			o_div[get1Dpos(i, j, i_m + 2)] =
-				-0.5 * i_h * (
-					i_grid[get1Dpos(i + 1, j, i_m + 2)].x() -
-					i_grid[get1Dpos(i - 1, j, i_m + 2)].x() +
-					i_grid[get1Dpos(i, j + 1, i_m + 2)].y() -
-					i_grid[get1Dpos(i, j - 1, i_m + 2)].y());
-			o_p[get1Dpos(i, j, i_m + 2)] = 0;
-		}
-	}
-	SetBoundry(i_n, i_m, o_div);
-	SetBoundry(i_n, i_m, o_p);
-
-}
-
 void Fluid::Compution::SetBoundry(int i_n, int i_m, vectorFiledGrid& o_v)
 {
 	for (int i = 1; i <= i_m; i++)
@@ -147,6 +125,26 @@ void Fluid::Compution::SetBoundry(int i_n, int i_m, scalarFieldGrid& o_v)
 	o_v[get1Dpos(i_n + 1, i_m + 1, i_m + 2)] = 0.5f * (o_v[get1Dpos(i_n, i_m + 1, i_m + 2)] + o_v[get1Dpos(i_n + 1, i_m, i_m + 2)]);
 }
 
+void Fluid::Compution::ProjectStart(int i_n, int i_m, float i_h, const vectorFiledGrid& i_grid, scalarFieldGrid& o_div, scalarFieldGrid& o_p)
+{
+	for (int i = 1; i <= i_n; i++) {
+		for (int j = 1; j <= i_m; j++) {
+			/*(W_in[tid + int2(1, 0)].x - W_in[tid - int2(1, 0)].x +
+				W_in[tid + int2(0, 1)].y - W_in[tid - int2(0, 1)].y)* dim.y / 2;*/
+			o_div[get1Dpos(i, j, i_m + 2)] =
+				-0.5f * i_h * (
+				(float)(i_grid[get1Dpos(i + 1, j, i_m + 2)].x()) -
+					(float)(i_grid[get1Dpos(i - 1, j, i_m + 2)].x()) +
+					(float)(i_grid[get1Dpos(i, j + 1, i_m + 2)].y()) -
+					(float)i_grid[get1Dpos(i, j - 1, i_m + 2)].y());
+			o_p[get1Dpos(i, j, i_m + 2)] = 0;
+		}
+	}
+	SetBoundry(i_n, i_m, o_div);
+	SetBoundry(i_n, i_m, o_p);
+
+}
+
 void Fluid::Compution::ProjectFinish(int i_n, int i_m, float i_h, const vectorFiledGrid& i_v, const scalarFieldGrid& i_p, vectorFiledGrid& o_v)
 {
 	for (int i = 1; i <= i_n; i++) {
@@ -159,7 +157,7 @@ void Fluid::Compution::ProjectFinish(int i_n, int i_m, float i_h, const vectorFi
 			QVector2D u = i_v[get1Dpos(i, j, i_m + 2)] -
 				0.5 * QVector2D(
 					p2 - p1,
-					p4 - p3) / i_h;
+					p4 - p3) / i_h ;
 			o_v[get1Dpos(i, j, i_m + 2)] = u;
 			//if (i == 1) o_v[get1Dpos(0, j, i_m + 2)] = QVector2D(-u.x(), u.y());
 			//if (j == 1) o_v[get1Dpos(i, 0, i_m + 2)] = QVector2D(u.x(), -u.y());

@@ -61,5 +61,5 @@ private:
 	Fluid::Compution::vectorFiledGrid m_interVelocity1, m_interVelocity2;
 	Fluid::Compution::scalarFieldGrid m_P1, m_P2, m_div;
 	QVector2D m_mousePositionForScreen, m_mousePositionForVelocity, m_previousMousePositionForVelocity;
-	bool m_isPressed;
+	bool m_isPressed, m_firstTime;
 };

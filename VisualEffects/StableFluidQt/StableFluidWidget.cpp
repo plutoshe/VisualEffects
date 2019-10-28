@@ -76,7 +76,7 @@ void StableFluidWidget::initializeGL()
 	initGeometry();
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	m_timer.start(12, this);
+	m_timer.start(1, this);
 	m_calcTimer.start();
 	qint64 m_lastTime = m_calcTimer.elapsed();
 }
@@ -102,21 +102,10 @@ void StableFluidWidget::initShaders()
 
 void StableFluidWidget::initTextures()
 {
-	// Load cube.png image
-	m_texture = new QOpenGLTexture(QImage("cube.jpg").mirrored());
-	/*logo = QImage(":/res/designer.png");
-	logo = logo.convertToFormat(QImage::Format_ARGB32);*/
-
-	// Set nearest filtering mode for texture minification
+	m_texture = new QOpenGLTexture(QImage("cube1.jpg").mirrored());
 	m_texture->setMinificationFilter(QOpenGLTexture::Nearest);
-
-	// Set bilinear filtering mode for texture magnification
 	m_texture->setMagnificationFilter(QOpenGLTexture::Linear);
-
-	// Wrap texture coordinates by repeating
-	// f.ex. texture coordinate (1.1, 1.2) is same as (0.1, 0.2)
 	m_texture->setWrapMode(QOpenGLTexture::Repeat);
-	//m_renderTexture = new QGLFramebufferObject(m_texture->width(), m_texture->height()); 
 	m_renderTexture = new QGLFramebufferObject(this->width(), this->height());
 	m_renderTexture1 = new QGLFramebufferObject(this->width(), this->height());
 	m_initial = false;
@@ -129,6 +118,7 @@ void StableFluidWidget::resizeGL(int w, int h)
 void StableFluidWidget::mousePressEvent(QMouseEvent* e)
 {
 	m_mousePositionForVelocity = QVector2D(1 - QCursor::pos().y() * 1.0 / this->height(), QCursor::pos().x() * 1.0 / this->width());
+	m_firstTime = true;
 	m_isPressed = true;
 }
 
@@ -143,11 +133,6 @@ void StableFluidWidget::paintGL()
 	// Clear color and depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	/*density step
-	add_source(N, x, x0, dt);
-	SWAP(x0, x); diffuse(N, 0, x, x0, diff, dt);
-	SWAP(x0, x); advect(N, 0, x, x0, u, v, dt)*/
-
 	/*velocity step
 	add_source(N, u, u0, dt); add_source(N, v, v0, dt);
 	SWAP(u0, u); diffuse(N, 1, u, u0, visc, dt);
@@ -156,18 +141,12 @@ void StableFluidWidget::paintGL()
 	SWAP(u0, u); SWAP(v0, v);
 	advect(N, 1, u, u0, u0, v0, dt); advect(N, 2, v, v0, u0, v0, dt);
 	project(N, u, v, u0, v0);*/
-	//Fluid::Compution::Advect();
-	//var dx = 1.0f / ResolutionY;
-	//float dif_alpha = dx * dx / (_viscosity * dt);
-
-
 
 	m_interVelocity1 = m_velocity;
 	m_interVelocity2 = m_velocity;
-	float m_vicosityParam = 1e-6;
+	float m_vicosityParam = 1e-5;
 	float m_forceExponentParam = 200;
 	
-	//float dif_alpha = m_deltaTime* m_vicosityParam* m_width* m_height;
 	if (m_deltaTime < -1e7)
 	{
 		m_deltaTime = 1e-7;
@@ -184,16 +163,9 @@ void StableFluidWidget::paintGL()
 	m_velocity = m_interVelocity1;
 	for (int i = 0; i < 20; i++)
 	{
-		for (int si = 0; si < m_interVelocity1.size(); si++)
-		{
-			if (m_interVelocity1[si].x() > 0.001f)
-			{
-				int j = 1;
-			}
-		}
-		Fluid::Compution::Diffuse(m_height, m_width, dif_alpha, /*dif_alpha * 4 + 1*/ 4 + dif_alpha, m_velocity, m_interVelocity1, m_interVelocity2);
+		Fluid::Compution::Diffuse(m_height, m_width, dif_alpha, 4 + dif_alpha, m_velocity, m_interVelocity1, m_interVelocity2);
 		Fluid::Compution::SetBoundry(m_height, m_width, m_interVelocity2);
-		Fluid::Compution::Diffuse(m_height, m_width, dif_alpha, /*dif_alpha * 4 + 1*/ 4 + dif_alpha, m_velocity, m_interVelocity2, m_interVelocity1);
+		Fluid::Compution::Diffuse(m_height, m_width, dif_alpha, 4 + dif_alpha, m_velocity, m_interVelocity2, m_interVelocity1);
 		Fluid::Compution::SetBoundry(m_height, m_width, m_interVelocity1);
 	}
 	m_previousMousePositionForVelocity = m_mousePositionForVelocity;
@@ -205,9 +177,12 @@ void StableFluidWidget::paintGL()
 	QVector2D m_forceVector(0, 0);
 	if (m_isPressed)
 	{
-		m_forceVector = (m_mousePositionForVelocity - m_previousMousePositionForVelocity) * 300;
+		if (!m_firstTime)
+		{
+			m_forceVector = (m_mousePositionForVelocity - m_previousMousePositionForVelocity) * 50;
+		}
+		m_firstTime = false;
 	}
-	
 	Fluid::Compution::AddForce(
 		m_height,
 		m_width,
@@ -221,9 +196,9 @@ void StableFluidWidget::paintGL()
 
 		for (int i = 0; i < 20; i++)
 		{
-			Fluid::Compution::Diffuse(m_height, m_width, /*1, 4,*/ 1.0 / m_height, 4, m_div, m_P1, m_P2);
+			Fluid::Compution::Diffuse(m_height, m_width, 1.0, 4, m_div, m_P1, m_P2);
 			Fluid::Compution::SetBoundry(m_height, m_width, m_P2);
-			Fluid::Compution::Diffuse(m_height, m_width, /*1, 4,*/ 1.0 / m_height, 4, m_div, m_P2, m_P1);
+			Fluid::Compution::Diffuse(m_height, m_width, 1.0, 4, m_div, m_P2, m_P1);
 			Fluid::Compution::SetBoundry(m_height, m_width, m_P1);
 		}
 
@@ -270,11 +245,6 @@ void StableFluidWidget::paintGL()
 		m_program.setUniformValue("texture", 0);
 		m_renderTexture->bind();
 		glDrawElements(GL_TRIANGLES, m_geometry.m_indices.size(), GL_UNSIGNED_INT, 0);
-		
-	
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//glDrawElements(GL_TRIANGLE_STRIP, 5, GL_UNSIGNED_SHORT, 0);
-		//m_texture->release();
 		QRect rect(0, 0, this->width(), this->height());
 		QGLFramebufferObject::blitFramebuffer(m_renderTexture1, rect, m_renderTexture, rect);
 	}
@@ -289,20 +259,9 @@ void StableFluidWidget::paintGL()
 		m_program.setAttributeBuffer(speedLocation, GL_FLOAT, 0, 2, sizeof(QVector2D));
 		glBindTexture(GL_TEXTURE_2D, m_renderTexture1->texture());
 		m_renderTexture1->bind();
-		//glDrawElements(GL_TRIANGLE_STRIP, 5, GL_UNSIGNED_SHORT, 0);
 		glDrawElements(GL_TRIANGLES, m_geometry.m_indices.size(), GL_UNSIGNED_INT, 0);
-		//glBindTexture(GL_TEXTURE_2D, m_renderTexture->texture());
 		m_renderTexture1->bindDefault();
-		//glDrawElements(GL_TRIANGLE_STRIP, 5, GL_UNSIGNED_SHORT, 0);
 		glDrawElements(GL_TRIANGLES, m_geometry.m_indices.size(), GL_UNSIGNED_INT, 0);
-		//if (hasOpenGLFramebufferBlit())
 		QRect rect(0, 0, this->width(), this->height()); 
-		
-		/*QGLFramebufferObject::blitFramebuffer(QOpenGLContext::currentContext()->defaultFramebufferObject(), rect, m_renderTexture1, rect);*/
-		//QOpenGLContext::currentContext()->swapBuffers();
 	}
-
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
-	//glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, 0);
 }
