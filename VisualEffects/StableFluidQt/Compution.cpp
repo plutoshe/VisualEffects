@@ -76,11 +76,11 @@ void Fluid::Computation::AddForce(int i_n, int i_m, QVector2D i_forceOrigin, flo
 	}
 }
 
-void Fluid::Computation::SetBoundry(int i_n, int i_m, float* o_v, int i_status)
+void Fluid::Computation::SetBoundry(int i_n, int i_m, float* o_v, int i_status, bool i_border)
 {
 	for (int i = 1; i <= i_m; i++)
 	{
-		o_v[get1Dpos(0, i, i_m + 2)] = ((i_status == 1)? -1 : 1) * o_v[get1Dpos(1, i, i_m + 2)];
+		o_v[get1Dpos(0, i, i_m + 2)] = ((i_status == 1) ? -1 : 1) * o_v[get1Dpos(1, i, i_m + 2)];
 		o_v[get1Dpos(i_n + 1, i, i_m + 2)] = ((i_status == 1) ? -1 : 1) * o_v[get1Dpos(i_n, i, i_m + 2)];
 	}
 	for (int i = 1; i <= i_n; i++)
@@ -88,10 +88,14 @@ void Fluid::Computation::SetBoundry(int i_n, int i_m, float* o_v, int i_status)
 		o_v[get1Dpos(i, 0, i_m + 2)] = ((i_status == 2) ? -1 : 1) * o_v[get1Dpos(i, 1, i_m + 2)];
 		o_v[get1Dpos(i, i_m + 1, i_m + 2)] = ((i_status == 2) ? -1 : 1) * o_v[get1Dpos(i, i_m, i_m + 2)];
 	}
-	o_v[get1Dpos(0, 0, i_m + 2)] = 0.5f * (o_v[get1Dpos(1, 0, i_m + 2)] + o_v[get1Dpos(0, 1, i_m + 2)]);
-	o_v[get1Dpos(0, i_m + 1, i_m + 2)] = 0.5f * (o_v[get1Dpos(1, i_m + 1, i_m + 2)] + o_v[get1Dpos(0, i_m, i_m + 2)]);
-	o_v[get1Dpos(i_n + 1, 0, i_m + 2)] = 0.5f * (o_v[get1Dpos(i_n, 0, i_m + 2)] + o_v[get1Dpos(i_n + 1, 1, i_m + 2)]);
-	o_v[get1Dpos(i_n + 1, i_m + 1, i_m + 2)] = 0.5f * (o_v[get1Dpos(i_n, i_m + 1, i_m + 2)] + o_v[get1Dpos(i_n + 1, i_m, i_m + 2)]);
+	if (i_border)
+	{
+
+		o_v[get1Dpos(0, 0, i_m + 2)] = 0.5f * (o_v[get1Dpos(1, 0, i_m + 2)] + o_v[get1Dpos(0, 1, i_m + 2)]);
+		o_v[get1Dpos(0, i_m + 1, i_m + 2)] = 0.5f * (o_v[get1Dpos(1, i_m + 1, i_m + 2)] + o_v[get1Dpos(0, i_m, i_m + 2)]);
+		o_v[get1Dpos(i_n + 1, 0, i_m + 2)] = 0.5f * (o_v[get1Dpos(i_n, 0, i_m + 2)] + o_v[get1Dpos(i_n + 1, 1, i_m + 2)]);
+		o_v[get1Dpos(i_n + 1, i_m + 1, i_m + 2)] = 0.5f * (o_v[get1Dpos(i_n, i_m + 1, i_m + 2)] + o_v[get1Dpos(i_n + 1, i_m, i_m + 2)]);
+	}
 }
 
 void Fluid::Computation::ProjectStart(int i_n, int i_m, float i_h, const float* const i_ux, const float* const i_uy, float* o_div, float* o_p)
@@ -145,8 +149,7 @@ void Fluid::Computation::ProjectFinish(int i_n, int i_m, float i_h, const float*
 			}*/
 		}	
 	}
-	SetBoundry(i_n, i_m, o_ux, 1);
-	SetBoundry(i_n, i_m, o_uy, 2);
+
 	//o_v[get1Dpos(0, 0, i_m + 2)] = 0.5 * (o_v[get1Dpos(1, 0, i_m + 2)] + o_v[get1Dpos(0, 1, i_m + 2)]);
 	//o_v[get1Dpos(0, i_m + 1, i_m + 2)] = 0.5 * (o_v[get1Dpos(1, i_m + 1, i_m + 2)] + o_v[get1Dpos(0, i_m, i_m + 2)]);
 	//o_v[get1Dpos(i_n + 1, 0, i_m + 2)] = 0.5 * (o_v[get1Dpos(i_n, 0, i_m + 2)] + o_v[get1Dpos(i_n + 1, 1, i_m + 2)]);

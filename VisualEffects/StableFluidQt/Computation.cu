@@ -24,8 +24,8 @@ void Advect(int i_n,
     float* o_ux,
     float* o_uy)
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x + 1;
-    int j = blockIdx.y * blockDim.y + threadIdx.y + 1;
+    int i = clamp(blockIdx.x * blockDim.x + threadIdx.x + 1, 1, i_n);
+    int j = clamp(blockIdx.y * blockDim.y + threadIdx.y + 1, 1, i_m);
 	float bx = i - i_deltaTime * i_ux[get1Dpos(i, j, i_m + 2)] * i_n;
 	float by = j - i_deltaTime * i_uy[get1Dpos(i, j, i_m + 2)] * i_m;
 	bx = clamp(bx, 0.5, i_n + 0.5);
@@ -45,8 +45,8 @@ void Advect(int i_n,
 
 __global__ void test(int i_n, int i_m, const float* const i_in, float* i_out)
 {
-    int i = blockIdx.x * blockDim.x + threadIdx.x + 1;
-    int j = blockIdx.y * blockDim.y + threadIdx.y + 1;
+	int i = clamp(blockIdx.x * blockDim.x + threadIdx.x + 1, 1, i_n);
+	int j = clamp(blockIdx.y * blockDim.y + threadIdx.y + 1, 1, i_m);
     
     i_out[get1Dpos(i, j, i_m + 2)] = i_in[get1Dpos(i, j, i_m + 2)] + 10;
 	
@@ -54,8 +54,8 @@ __global__ void test(int i_n, int i_m, const float* const i_in, float* i_out)
 
 __global__ void AddForce(int i_n, int i_m, float2 i_forceOrigin, float i_forceExponennt, float2 i_forceVector, const float* const i_ux, const float* const i_uy, float* o_ux, float* o_uy)
 {
-	int i = blockIdx.x * blockDim.x + threadIdx.x + 1;
-	int j = blockIdx.y * blockDim.y + threadIdx.y + 1;
+	int i = clamp(blockIdx.x * blockDim.x + threadIdx.x + 1, 1, i_n);
+	int j = clamp(blockIdx.y * blockDim.y + threadIdx.y + 1, 1, i_m);
 	float sx =  i_forceOrigin.x - i * 1.0 / i_n;
 	float sy = i_forceOrigin.y - j * 1.0 / i_m;
 	float amp = exp(-i_forceExponennt*sqrt(sx*sx + sy * sy));
@@ -67,8 +67,8 @@ __global__ void AddForce(int i_n, int i_m, float2 i_forceOrigin, float i_forceEx
 
 __global__ void Diffuse(int i_n, int i_m, float i_alpha, float i_beta, const float* const i_origin, const float* const i_grid, float* o_grid)
 {
-	int i = blockIdx.x * blockDim.x + threadIdx.x + 1;
-	int j = blockIdx.y * blockDim.y + threadIdx.y + 1;
+	int i = clamp(blockIdx.x * blockDim.x + threadIdx.x + 1, 1, i_n);
+	int j = clamp(blockIdx.y * blockDim.y + threadIdx.y + 1, 1, i_m);
 	o_grid[get1Dpos(i, j, i_m + 2)] =
 		(i_origin[get1Dpos(i, j, i_m + 2)] * i_alpha +
 			i_grid[get1Dpos(i - 1, j, i_m + 2)] +
@@ -81,8 +81,8 @@ __global__ void Diffuse(int i_n, int i_m, float i_alpha, float i_beta, const flo
 
 __global__ void ProjectStart(int i_n, int i_m, float i_h, const float* const i_ux, const float* const i_uy, float* o_div, float* o_p)
 {
-	int i = blockIdx.x * blockDim.x + threadIdx.x + 1;
-	int j = blockIdx.y * blockDim.y + threadIdx.y + 1;
+	int i = clamp(blockIdx.x * blockDim.x + threadIdx.x + 1, 1, i_n);
+	int j = clamp(blockIdx.y * blockDim.y + threadIdx.y + 1, 1, i_m);
 	o_div[get1Dpos(i, j, i_m + 2)] =
 		-0.5f * i_h * (
 			i_ux[get1Dpos(i + 1, j, i_m + 2)] -
@@ -98,8 +98,8 @@ __global__ void ProjectStart(int i_n, int i_m, float i_h, const float* const i_u
 
 __global__ void ProjectFinish(int i_n, int i_m, float i_h, const float* const i_ux, const float* const i_uy, const float* const i_p, float* o_ux, float* o_uy)
 {
-	int i = blockIdx.x * blockDim.x + threadIdx.x + 1;
-	int j = blockIdx.y * blockDim.y + threadIdx.y + 1;
+	int i = clamp(blockIdx.x * blockDim.x + threadIdx.x + 1, 1, i_n);
+	int j = clamp(blockIdx.y * blockDim.y + threadIdx.y + 1, 1, i_m);
 	float p1 = i_p[get1Dpos((i <= 2? 1 : i - 1), j, i_m + 2)];
 	float p2 = i_p[get1Dpos((i < i_n - 1) ? i+ 1 : i_n, j, i_m + 2)];
 	float p3 = i_p[get1Dpos(i, j <= 2?1: j - 1, i_m + 2)];
@@ -139,6 +139,24 @@ __global__ void ProjectFinish(int i_n, int i_m, float i_h, const float* const i_
 }
 
 
+__global__ void SetBoundry(int i_n, int i_m, float* o_v, int i_status1, int i_status2)
+{
+	int i = clamp(blockIdx.x * blockDim.x + threadIdx.x + 1, 1, i_n + i_m + 1);
+	//int j = blockIdx.y * blockDim.y + threadIdx.y + 1;
+	if (i <= i_m)
+	{ 
+	
+		o_v[get1Dpos(0, i, i_m + 2)] = i_status1 * o_v[get1Dpos(1, i, i_m + 2)];
+		o_v[get1Dpos(i_n + 1, i, i_m + 2)] = i_status1 * o_v[get1Dpos(i_n, i, i_m + 2)];
+	}
+	else
+	{
+		i -= i_m;
+		o_v[get1Dpos(i, 0, i_m + 2)] = i_status2 * o_v[get1Dpos(i, 1, i_m + 2)];
+		o_v[get1Dpos(i, i_m + 1, i_m + 2)] = i_status2 * o_v[get1Dpos(i, i_m, i_m + 2)];
+	}
+	
+}
 
 void Initialization()
 {
@@ -163,6 +181,8 @@ void CalculateNewVelocity(const int i_n, const int i_m, float* o_ux, float* o_uy
 	
 	const dim3 blockSize((i_n - 1) / 32 + 1, (i_m - 1) / 32 + 1, 1);
 	const dim3 gridSize(32, 32, 1);
+	const dim3 borderBlockSize((i_n + i_m) / 1024);
+	const dim3 borderGridSize(1024, 1, 1);
 	float* ux1 = nullptr;
 	float* uy1 = nullptr;
 	float* ux2 = nullptr;
@@ -224,26 +244,29 @@ void CalculateNewVelocity(const int i_n, const int i_m, float* o_ux, float* o_uy
 	}
 	
 
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < 10; i++)
 	{
 		if (i_gpu)
 		{
 			Diffuse << <gridSize, blockSize >> > (i_n, i_m, dif_alpha, 4 + dif_alpha, ux1, ux2, ux3);
 			Diffuse << <gridSize, blockSize >> > (i_n, i_m, dif_alpha, 4 + dif_alpha, uy1, uy2, uy3);
-
+			SetBoundry << <borderGridSize, borderBlockSize >> > (i_n, i_m, ux3, -1, 1);
+			SetBoundry << <borderGridSize, borderBlockSize >> > (i_n, i_m, uy3, 1, -1);
 			Diffuse << <gridSize, blockSize >> > (i_n, i_m, dif_alpha, 4 + dif_alpha, ux1, ux3, ux2);
 			Diffuse << <gridSize, blockSize >> > (i_n, i_m, dif_alpha, 4 + dif_alpha, uy1, uy3, uy2);
+			SetBoundry << <borderGridSize, borderBlockSize >> > (i_n, i_m, ux2, -1, 1);
+			SetBoundry << <borderGridSize, borderBlockSize >> > (i_n, i_m, uy2, 1, -1);
 		}
 		else
 		{
 			Fluid::Computation::Diffuse(i_n, i_m, dif_alpha, 4 + dif_alpha, ux1, ux2, ux3);
 			Fluid::Computation::Diffuse(i_n, i_m, dif_alpha, 4 + dif_alpha, uy1, uy2, uy3);
-			Fluid::Computation::SetBoundry(i_n, i_m, ux3, 1);
-			Fluid::Computation::SetBoundry(i_n, i_m, uy3, 2);
+			Fluid::Computation::SetBoundry(i_n, i_m, ux3, 1, false);
+			Fluid::Computation::SetBoundry(i_n, i_m, uy3, 2, false);
 			Fluid::Computation::Diffuse(i_n, i_m, dif_alpha, 4 + dif_alpha, ux1, ux3, ux2);
 			Fluid::Computation::Diffuse(i_n, i_m, dif_alpha, 4 + dif_alpha, uy1, uy3, uy2);
-			Fluid::Computation::SetBoundry(i_n, i_m, ux2, 1);
-			Fluid::Computation::SetBoundry(i_n, i_m, uy2, 2);
+			Fluid::Computation::SetBoundry(i_n, i_m, ux2, 1, false);
+			Fluid::Computation::SetBoundry(i_n, i_m, uy2, 2, false);
 			//Fluid::Computation::SetBoundry(m_height, m_width, m_interVelocity1);
 		}
 	}
@@ -252,33 +275,38 @@ void CalculateNewVelocity(const int i_n, const int i_m, float* o_ux, float* o_uy
 	{
 		AddForce << <gridSize, blockSize >> > (i_n, i_m, make_float2(i_mousePosition.x(), i_mousePosition.y()), i_forceExponentParam, make_float2(i_forceVector.x(), i_forceVector.y()), ux2, uy2, ux3, uy3);
 		ProjectStart << <gridSize, blockSize >> > (i_n, i_m, 1.0 / i_n, ux3, uy3, div, p1);
+		SetBoundry << <borderGridSize, borderBlockSize >> > (i_n, i_m, div, 1, 1);
+		SetBoundry << <borderGridSize, borderBlockSize >> > (i_n, i_m, p1, 1, 1);
 	}
 	else
 	{
 		Fluid::Computation::AddForce(i_n, i_m, i_mousePosition, i_forceExponentParam, i_forceVector, ux2, uy2, ux3, uy3);
 		Fluid::Computation::ProjectStart(i_n, i_m, 1.0 / i_n, ux3, uy3, div, p1);
-		Fluid::Computation::SetBoundry(i_n, i_m, div, 0);
-		Fluid::Computation::SetBoundry(i_n, i_m, p1, 0);
+		Fluid::Computation::SetBoundry(i_n, i_m, div, 0, false);
+		Fluid::Computation::SetBoundry(i_n, i_m, p1, 0, false);
 	}
 	
 	//	
 	
 
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < 10; i++)
 	{
 		if (i_gpu)
 		{
 		
 			Diffuse << <gridSize, blockSize >> > (i_n, i_m, 1.0, 4, div, p1, p2);
+			
+			SetBoundry << <borderGridSize, borderBlockSize >> > (i_n, i_m, p2, 1, 1);
 			Diffuse << <gridSize, blockSize >> > (i_n, i_m, 1.0, 4, div, p2, p1);
+			SetBoundry << <borderGridSize, borderBlockSize >> > (i_n, i_m, p1, 1, 1);
 		}
 		else
 		{
 			Fluid::Computation::Diffuse(i_n, i_m, 1.0, 4, div, p1, p2);
-			Fluid::Computation::SetBoundry(i_n, i_m, p2, 0);
+			Fluid::Computation::SetBoundry(i_n, i_m, p2, 0, false);
 			//Fluid::Compution::SetBoundry(m_height, m_width, m_P2);
 			Fluid::Computation::Diffuse(i_n, i_m, 1.0, 4, div, p2, p1);
-			Fluid::Computation::SetBoundry(i_n, i_m, p1, 0);
+			Fluid::Computation::SetBoundry(i_n, i_m, p1, 0, false);
 			//Fluid::Compution::SetBoundry(m_height, m_width, m_P1);
 		}
 	}
@@ -293,6 +321,8 @@ void CalculateNewVelocity(const int i_n, const int i_m, float* o_ux, float* o_uy
 		Fluid::Computation::ProjectFinish(i_n, i_m, 1.0 / i_n, ux3, uy3, p1, ux1, uy1);
 		cudaMemcpy(o_ux, ux1, totalSize, cudaMemcpyHostToHost);
 		cudaMemcpy(o_uy, uy1, totalSize, cudaMemcpyHostToHost);
+		Fluid::Computation::SetBoundry(i_n, i_m, o_ux, 1, true);
+		Fluid::Computation::SetBoundry(i_n, i_m, o_uy, 2, true);
 	}
 }
 

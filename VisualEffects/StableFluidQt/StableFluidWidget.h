@@ -61,4 +61,5 @@ private:
 	QVector2D m_mousePositionForScreen, m_mousePositionForVelocity, m_previousMousePositionForVelocity;
 	bool m_isPressed, m_firstTime;
 	float* m_velocityX, *m_velocityY;
+	bool m_isGPU;
 };
