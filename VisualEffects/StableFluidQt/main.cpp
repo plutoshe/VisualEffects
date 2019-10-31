@@ -1,6 +1,12 @@
 #include "StableFluidQt.h"
 #include "StableFluidWidget.h"
+
 #include <QtWidgets/QApplication>
+
+#include <stdio.h>
+
+void hello1();
+
 
 int main(int argc, char *argv[])
 {

@@ -1,4 +1,9 @@
 ﻿#include "StableFluidWidget.h"
+#include "util.h"
+#include "Compution.h"
+#include <string>
+
+
 struct VertexData
 {
 	QVector3D position;
@@ -12,8 +17,8 @@ StableFluidWidget::StableFluidWidget(QWidget* parent) :
 	m_texture(0)
 {
 	m_isPressed = false;
-	m_width = 100;
-	m_height = 100;
+	m_width = 150;
+	m_height = 150;
 	makeCurrent();
 }
 
@@ -127,9 +132,10 @@ void StableFluidWidget::mouseReleaseEvent(QMouseEvent* e)
 	m_isPressed = false;
 
 }
-
+void test1(int i_n, int i_m);
 void StableFluidWidget::paintGL()
 {
+	test1(m_height, m_width);
 	// Clear color and depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -142,38 +148,14 @@ void StableFluidWidget::paintGL()
 	advect(N, 1, u, u0, u0, v0, dt); advect(N, 2, v, v0, u0, v0, dt);
 	project(N, u, v, u0, v0);*/
 
-	m_interVelocity1 = m_velocity;
-	m_interVelocity2 = m_velocity;
 	float m_vicosityParam = 1e-5;
 	float m_forceExponentParam = 200;
-	
-	if (m_deltaTime < -1e7)
-	{
-		m_deltaTime = 1e-7;
-	}
-	double paramB = m_deltaTime * m_vicosityParam;
-	if (paramB == 0)
-	{
-		paramB = 0.00000000001f;
-	}
-	double dif_alpha = (double(1.0)) / (m_width * m_height) / (paramB);
-	
 
-	Fluid::Compution::Advect(m_height, m_width, m_deltaTime, m_velocity, m_interVelocity1);
-	m_velocity = m_interVelocity1;
-	for (int i = 0; i < 20; i++)
-	{
-		Fluid::Compution::Diffuse(m_height, m_width, dif_alpha, 4 + dif_alpha, m_velocity, m_interVelocity1, m_interVelocity2);
-		Fluid::Compution::SetBoundry(m_height, m_width, m_interVelocity2);
-		Fluid::Compution::Diffuse(m_height, m_width, dif_alpha, 4 + dif_alpha, m_velocity, m_interVelocity2, m_interVelocity1);
-		Fluid::Compution::SetBoundry(m_height, m_width, m_interVelocity1);
-	}
 	m_previousMousePositionForVelocity = m_mousePositionForVelocity;
-	//auto pp = QCursor::pos();
 	auto mpos = QWidget::mapFromGlobal(QCursor::pos());
 	m_mousePositionForScreen = QVector2D(mpos.x() * 1.0 / this->width(), 1 - mpos.y() * 1.0 / this->height());
 	m_mousePositionForVelocity = QVector2D(1 - mpos.y() * 1.0 / this->height(), mpos.x() * 1.0 / this->width());
-	
+
 	QVector2D m_forceVector(0, 0);
 	if (m_isPressed)
 	{
@@ -183,28 +165,6 @@ void StableFluidWidget::paintGL()
 		}
 		m_firstTime = false;
 	}
-	Fluid::Compution::AddForce(
-		m_height,
-		m_width,
-		m_mousePositionForVelocity,
-		m_forceExponentParam,
-		m_forceVector, m_interVelocity1, m_interVelocity2);
-
-	 //Project part
-	{	
-		Fluid::Compution::ProjectStart(m_height, m_width, 1.0 / m_height, m_interVelocity2, m_div, m_P1);
-
-		for (int i = 0; i < 20; i++)
-		{
-			Fluid::Compution::Diffuse(m_height, m_width, 1.0, 4, m_div, m_P1, m_P2);
-			Fluid::Compution::SetBoundry(m_height, m_width, m_P2);
-			Fluid::Compution::Diffuse(m_height, m_width, 1.0, 4, m_div, m_P2, m_P1);
-			Fluid::Compution::SetBoundry(m_height, m_width, m_P1);
-		}
-
-		Fluid::Compution::ProjectFinish(m_height, m_width, 1.0 / m_height, m_interVelocity2, m_P1, m_velocity);
-	}
-	
 
 	m_program.setUniformValue("i_time", (float)m_time);
 	m_program.setUniformValue("i_deltaTime", (float)m_deltaTime);
@@ -253,15 +213,15 @@ void StableFluidWidget::paintGL()
 	
 		m_speedBuf.bind();
 		m_speedBuf.write(0, &m_velocity[0], m_geometry.m_vertices.size() * sizeof(QVector2D));
-
 		int speedLocation = m_program.attributeLocation("i_speed");
 		m_program.enableAttributeArray(speedLocation);
+
 		m_program.setAttributeBuffer(speedLocation, GL_FLOAT, 0, 2, sizeof(QVector2D));
 		glBindTexture(GL_TEXTURE_2D, m_renderTexture1->texture());
 		m_renderTexture1->bind();
 		glDrawElements(GL_TRIANGLES, m_geometry.m_indices.size(), GL_UNSIGNED_INT, 0);
 		m_renderTexture1->bindDefault();
 		glDrawElements(GL_TRIANGLES, m_geometry.m_indices.size(), GL_UNSIGNED_INT, 0);
-		QRect rect(0, 0, this->width(), this->height()); 
+		//QRect rect(0, 0, this->width(), this->height()); 
 	}
 }
