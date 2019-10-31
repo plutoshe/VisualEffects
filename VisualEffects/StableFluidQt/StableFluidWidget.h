@@ -49,7 +49,7 @@ private:
 	qint64 m_lastTime;
 	float m_deltaTime;
 	// buffer data setting
-	QOpenGLBuffer m_speedBuf;
+	QOpenGLBuffer m_speedXBuf, m_speedYBuf;
 	QOpenGLBuffer m_arrayBuf;
 	QOpenGLBuffer m_indexBuf;
 	bool m_initial;
@@ -57,9 +57,8 @@ private:
 	cGeometry m_geometry;
 	int m_width, m_height;
 	qreal m_time;
-	Fluid::Compution::vectorFiledGrid m_velocity, m_density;
-	Fluid::Compution::vectorFiledGrid m_interVelocity1, m_interVelocity2;
-	Fluid::Compution::scalarFieldGrid m_P1, m_P2, m_div;
+	
 	QVector2D m_mousePositionForScreen, m_mousePositionForVelocity, m_previousMousePositionForVelocity;
 	bool m_isPressed, m_firstTime;
+	float* m_velocityX, *m_velocityY;
 };
