@@ -123,10 +123,12 @@ void Fluid::Computation::ProjectFinish(int i_n, int i_m, float i_h, const float*
 			float p2 = i_p[get1Dpos(std::min(i + 1, i_n), j, i_m + 2)];
 			float p3 = i_p[get1Dpos(i, std::max(1, j - 1), i_m + 2)];
 			float p4 = i_p[get1Dpos(i, std::min(i_m, j + 1), i_m + 2)];
-			float ux = i_ux[get1Dpos(i, j, i_m + 2)] - 0.5 * (p2 - p1) / i_h;
-			float uy = i_uy[get1Dpos(i, j, i_m + 2)] - 0.5 * (p4 - p3) / i_h;
+			float ux = i_ux[get1Dpos(i, j, i_m + 2)] - 0.5 * (float)(p2 - p1) / i_h;
+			float uy = i_uy[get1Dpos(i, j, i_m + 2)] - 0.5 * (float)(p4 - p3) / i_h;
 			o_ux[get1Dpos(i, j, i_m + 2)] = ux;
 			o_uy[get1Dpos(i, j, i_m + 2)] = uy;
+
+
 			/*if (i == 1)
 			{
 				o_ux[get1Dpos(0, j, i_m + 2)] = -ux;

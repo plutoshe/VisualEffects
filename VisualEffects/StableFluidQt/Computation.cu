@@ -4,11 +4,23 @@
 #include <qdebug.h>
 #include <cmath>
 //
-__device__ int clamp(float x, float a, float b)
+__device__ float clamp(float x, float a, float b)
 {
 	
     return max(a, min(b, x));
 }
+
+__device__ int clamp(int x, int a, int b)
+{
+
+	if (x < a)
+		return a;
+	if (x > b)
+		return b;
+	return x;
+	//return max(a, min(b, x));
+}
+
 
 __device__ int get1Dpos(int i, int j, int delta)
 {
@@ -40,7 +52,7 @@ void Advect(int i_n,
 		s1 * (t0 * i_ux[get1Dpos(bi1, bj0, i_m + 2)] + t1 * i_ux[get1Dpos(bi1, bj1, i_m + 2)]);
 	o_uy[get1Dpos(i, j, i_m + 2)] =
 		s0 * (t0 * i_uy[get1Dpos(bi0, bj0, i_m + 2)] + t1 * i_uy[get1Dpos(bi0, bj1, i_m + 2)]) +
-		s1 * (t0 * i_uy[get1Dpos(bi1, bj0, i_m + 2)] + t1 * i_uy[get1Dpos(bi1, bj1, i_m + 2)]);;
+		s1 * (t0 * i_uy[get1Dpos(bi1, bj0, i_m + 2)] + t1 * i_uy[get1Dpos(bi1, bj1, i_m + 2)]);
 }
 
 __global__ void test(int i_n, int i_m, const float* const i_in, float* i_out)
@@ -100,34 +112,34 @@ __global__ void ProjectFinish(int i_n, int i_m, float i_h, const float* const i_
 {
 	int i = clamp(blockIdx.x * blockDim.x + threadIdx.x + 1, 1, i_n);
 	int j = clamp(blockIdx.y * blockDim.y + threadIdx.y + 1, 1, i_m);
-	float p1 = i_p[get1Dpos((i <= 2? 1 : i - 1), j, i_m + 2)];
+	float p1 = i_p[get1Dpos((i < 2)? 1 : i - 1, j, i_m + 2)];
 	float p2 = i_p[get1Dpos((i < i_n - 1) ? i+ 1 : i_n, j, i_m + 2)];
-	float p3 = i_p[get1Dpos(i, j <= 2?1: j - 1, i_m + 2)];
+	float p3 = i_p[get1Dpos(i, (j < 2)? 1 : j - 1, i_m + 2)];
 	float p4 = i_p[get1Dpos(i, (j < i_m - 1)?j + 1: i_m, i_m + 2)];
 	float ux = i_ux[get1Dpos(i, j, i_m + 2)] - 0.5 * (p2 - p1) / i_h;
 	float uy = i_uy[get1Dpos(i, j, i_m + 2)] - 0.5 * (p4 - p3) / i_h;
 	o_ux[get1Dpos(i, j, i_m + 2)] = ux;
 	o_uy[get1Dpos(i, j, i_m + 2)] = uy;
-	if (i == 1)
-	{
-		o_ux[get1Dpos(0, j, i_m + 2)] = -ux;
-		o_uy[get1Dpos(0, j, i_m + 2)] = uy;
-	}
-	if (i == i_n)
-	{
-		o_ux[get1Dpos(0, j, i_m + 2)] = -ux;
-		o_uy[get1Dpos(0, j, i_m + 2)] = uy;
-	}
-	if (j == 1)
-	{
-		o_ux[get1Dpos(0, j, i_m + 2)] = ux;
-		o_uy[get1Dpos(0, j, i_m + 2)] = -uy;
-	}
-	if (j == i_m)
-	{
-		o_ux[get1Dpos(0, j, i_m + 2)] = ux;
-		o_uy[get1Dpos(0, j, i_m + 2)] = -uy;
-	}
+	//if (i == 1)
+	//{
+	//	o_ux[get1Dpos(0, j, i_m + 2)] = -ux;
+	//	o_uy[get1Dpos(0, j, i_m + 2)] = uy;
+	//}
+	//if (i == i_n)
+	//{
+	//	o_ux[get1Dpos(0, j, i_m + 2)] = -ux;
+	//	o_uy[get1Dpos(0, j, i_m + 2)] = uy;
+	//}
+	//if (j == 1)
+	//{
+	//	o_ux[get1Dpos(0, j, i_m + 2)] = ux;
+	//	o_uy[get1Dpos(0, j, i_m + 2)] = -uy;
+	//}
+	//if (j == i_m)
+	//{
+	//	o_ux[get1Dpos(0, j, i_m + 2)] = ux;
+	//	o_uy[get1Dpos(0, j, i_m + 2)] = -uy;
+	//}
 	
 
 	//SetBoundry(i_n, i_m, o_v);
@@ -141,11 +153,10 @@ __global__ void ProjectFinish(int i_n, int i_m, float i_h, const float* const i_
 
 __global__ void SetBoundry(int i_n, int i_m, float* o_v, int i_status1, int i_status2)
 {
-	int i = clamp(blockIdx.x * blockDim.x + threadIdx.x + 1, 1, i_n + i_m + 1);
+	int i = clamp(blockIdx.x * blockDim.x + threadIdx.x + 1, 1, i_n + i_m);
 	//int j = blockIdx.y * blockDim.y + threadIdx.y + 1;
 	if (i <= i_m)
 	{ 
-	
 		o_v[get1Dpos(0, i, i_m + 2)] = i_status1 * o_v[get1Dpos(1, i, i_m + 2)];
 		o_v[get1Dpos(i_n + 1, i, i_m + 2)] = i_status1 * o_v[get1Dpos(i_n, i, i_m + 2)];
 	}
@@ -158,42 +169,30 @@ __global__ void SetBoundry(int i_n, int i_m, float* o_v, int i_status1, int i_st
 	
 }
 
-void Initialization()
+float* ux1 = nullptr;
+float* uy1 = nullptr;
+float* ux2 = nullptr;
+float* uy2 = nullptr;
+float* ux3 = nullptr;
+float* uy3 = nullptr;
+float* p1 = nullptr;
+float* p2 = nullptr;
+float* div_array = nullptr;
+int totalNum;
+int totalSize;
+dim3 blockSize;
+dim3 gridSize;
+dim3 borderBlockSize;
+dim3 borderGridSize;
+void ComputationInitialization(const int i_n, const int i_m, bool i_gpu)
 {
+	totalNum = (i_n + 2) * (i_m + 2);
+	totalSize = sizeof(float) * (i_n + 2) * (i_m + 2);	
+	blockSize = dim3((i_n - 1) / 32 + 1, (i_m - 1) / 32 + 1, 1);
+	gridSize = dim3(32, 32, 1);
+	borderBlockSize = dim3((i_n + i_m - 1) / 1024 + 1, 1, 1);
+	borderGridSize = dim3(1024, 1, 1);
 
-}
-
-void CalculateNewVelocity(const int i_n, const int i_m, float* o_ux, float* o_uy, float i_deltaTime, float i_vicosityParam, float i_forceExponentParam, QVector2D i_mousePosition, QVector2D i_forceVector, bool i_gpu)
-{
-	//m_interVelocity1 = m_velocity;
-	//m_interVelocity2 = m_velocity;
-	
-	if (i_deltaTime < -1e7)
-	{
-		i_deltaTime = 1e-7;
-	}
-	double paramB = i_deltaTime * i_vicosityParam;
-	if (paramB == 0)
-	{
-		paramB = 0.00000000001f;
-	}
-	// initialization
-	
-	const dim3 blockSize((i_n - 1) / 32 + 1, (i_m - 1) / 32 + 1, 1);
-	const dim3 gridSize(32, 32, 1);
-	const dim3 borderBlockSize((i_n + i_m) / 1024);
-	const dim3 borderGridSize(1024, 1, 1);
-	float* ux1 = nullptr;
-	float* uy1 = nullptr;
-	float* ux2 = nullptr;
-	float* uy2 = nullptr;
-	float* ux3 = nullptr;
-	float* uy3 = nullptr;
-	float* p1 = nullptr;
-	float* p2 = nullptr;
-	float* div = nullptr;
-	int totalNum = (i_n + 2) * (i_m + 2);
-	int totalSize = sizeof(float) * (i_n + 2) * (i_m + 2);
 	if (i_gpu)
 	{
 		cudaMalloc(&ux1, totalSize);
@@ -204,11 +203,11 @@ void CalculateNewVelocity(const int i_n, const int i_m, float* o_ux, float* o_uy
 		cudaMalloc(&uy3, totalSize);
 		cudaMalloc(&p1, totalSize);
 		cudaMalloc(&p2, totalSize);
-		cudaMalloc(&div, totalSize);
+		cudaMalloc(&div_array, totalSize);
 
+		cudaMemset(div_array, 0, totalSize);
+		cudaMemset(p1, 0, totalSize);
 
-		cudaMemcpy(ux1, o_ux, totalSize, cudaMemcpyHostToDevice);
-		cudaMemcpy(uy1, o_uy, totalSize, cudaMemcpyHostToDevice);
 	}
 	else
 	{
@@ -220,11 +219,89 @@ void CalculateNewVelocity(const int i_n, const int i_m, float* o_ux, float* o_uy
 		uy3 = new float[totalNum];
 		p1 = new float[totalNum];
 		p2 = new float[totalNum];
-		div = new float[totalNum];
-		cudaMemset(div, 0, totalSize * sizeof(float));
+		div_array = new float[totalNum];
+		cudaMemset(div_array, 0, totalSize);
+		cudaMemset(p1, 0, totalSize);
+
+
+	}
+}
+
+void Project(const int i_n, const int i_m, const float* const i_ux, const float* const i_uy, float* o_ux, float* o_uy, bool i_gpu)
+{
+	if (i_gpu)
+	{
+		ProjectStart << <gridSize, blockSize >> > (i_n, i_m, 1.0 / i_n, i_ux, i_uy, div_array, p1);
+		SetBoundry << <borderGridSize, borderBlockSize >> > (i_n, i_m, div_array, 1, 1);
+		SetBoundry << <borderGridSize, borderBlockSize >> > (i_n, i_m, p1, 1, 1);
+	}
+	else
+	{
+		Fluid::Computation::ProjectStart(i_n, i_m, 1.0 / i_n, i_ux, i_uy, div_array, p1);
+		Fluid::Computation::SetBoundry(i_n, i_m, div_array, 0, false);
+		Fluid::Computation::SetBoundry(i_n, i_m, p1, 0, false);
+	}
+
+
+	for (int i = 0; i < 20; i++)
+	{
+		if (i_gpu)
+		{
+
+			Diffuse << <gridSize, blockSize >> > (i_n, i_m, 1.0, 4.0, div_array, p1, p2);
+			SetBoundry << <borderGridSize, borderBlockSize >> > (i_n, i_m, p2, 1, 1);
+
+
+			Diffuse << <gridSize, blockSize >> > (i_n, i_m, 1.0, 4.0, div_array, p2, p1);
+			SetBoundry << <borderGridSize, borderBlockSize >> > (i_n, i_m, p1, 1, 1);
+
+		}
+		else
+		{
+			Fluid::Computation::Diffuse(i_n, i_m, 1.0, 4.0, div_array, p1, p2);
+			Fluid::Computation::SetBoundry(i_n, i_m, p2, 0, false);
+			Fluid::Computation::Diffuse(i_n, i_m, 1.0, 4.0, div_array, p2, p1);
+			Fluid::Computation::SetBoundry(i_n, i_m, p1, 0, false);
+		}
+	}
+	if (i_gpu)
+	{
+		ProjectFinish << <gridSize, blockSize >> > (i_n, i_m, 1.0 / i_n, i_ux, i_uy, p1, o_ux, o_uy);
+
+	}
+	else
+	{
+		Fluid::Computation::ProjectFinish(i_n, i_m, 1.0 / i_n, i_ux, i_uy, p1, o_ux, o_uy);
+
+	}
+}
+
+
+void CalculateNewVelocity(const int i_n, const int i_m, float* o_ux, float* o_uy, float i_deltaTime, float i_vicosityParam, float i_forceExponentParam, QVector2D i_mousePosition, QVector2D i_forceVector, bool i_gpu)
+{
+
+
+	if (i_deltaTime < -1e7)
+	{
+		i_deltaTime = 1e-7;
+	}
+	double paramB = i_deltaTime * i_vicosityParam;
+	if (paramB == 0)
+	{
+		paramB = 0.00000000001f;
+	}
+	// initialization
+	
+
+	if (i_gpu)
+	{
+		cudaMemcpy(ux1, o_ux, totalSize, cudaMemcpyHostToDevice);
+		cudaMemcpy(uy1, o_uy, totalSize, cudaMemcpyHostToDevice);
+	}
+	else
+	{
 		cudaMemcpy(ux1, o_ux, totalSize, cudaMemcpyHostToHost);
 		cudaMemcpy(uy1, o_uy, totalSize, cudaMemcpyHostToHost);
-
 	}
 
 
@@ -244,7 +321,7 @@ void CalculateNewVelocity(const int i_n, const int i_m, float* o_ux, float* o_uy
 	}
 	
 
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 20; i++)
 	{
 		if (i_gpu)
 		{
@@ -274,51 +351,26 @@ void CalculateNewVelocity(const int i_n, const int i_m, float* o_ux, float* o_uy
 	if (i_gpu)
 	{
 		AddForce << <gridSize, blockSize >> > (i_n, i_m, make_float2(i_mousePosition.x(), i_mousePosition.y()), i_forceExponentParam, make_float2(i_forceVector.x(), i_forceVector.y()), ux2, uy2, ux3, uy3);
-		ProjectStart << <gridSize, blockSize >> > (i_n, i_m, 1.0 / i_n, ux3, uy3, div, p1);
-		SetBoundry << <borderGridSize, borderBlockSize >> > (i_n, i_m, div, 1, 1);
-		SetBoundry << <borderGridSize, borderBlockSize >> > (i_n, i_m, p1, 1, 1);
+		
 	}
 	else
 	{
 		Fluid::Computation::AddForce(i_n, i_m, i_mousePosition, i_forceExponentParam, i_forceVector, ux2, uy2, ux3, uy3);
-		Fluid::Computation::ProjectStart(i_n, i_m, 1.0 / i_n, ux3, uy3, div, p1);
-		Fluid::Computation::SetBoundry(i_n, i_m, div, 0, false);
-		Fluid::Computation::SetBoundry(i_n, i_m, p1, 0, false);
-	}
-	
-	//	
-	
-
-	for (int i = 0; i < 10; i++)
-	{
-		if (i_gpu)
-		{
 		
-			Diffuse << <gridSize, blockSize >> > (i_n, i_m, 1.0, 4, div, p1, p2);
-			
-			SetBoundry << <borderGridSize, borderBlockSize >> > (i_n, i_m, p2, 1, 1);
-			Diffuse << <gridSize, blockSize >> > (i_n, i_m, 1.0, 4, div, p2, p1);
-			SetBoundry << <borderGridSize, borderBlockSize >> > (i_n, i_m, p1, 1, 1);
-		}
-		else
-		{
-			Fluid::Computation::Diffuse(i_n, i_m, 1.0, 4, div, p1, p2);
-			Fluid::Computation::SetBoundry(i_n, i_m, p2, 0, false);
-			//Fluid::Compution::SetBoundry(m_height, m_width, m_P2);
-			Fluid::Computation::Diffuse(i_n, i_m, 1.0, 4, div, p2, p1);
-			Fluid::Computation::SetBoundry(i_n, i_m, p1, 0, false);
-			//Fluid::Compution::SetBoundry(m_height, m_width, m_P1);
-		}
 	}
+	
+	
+	Project(i_n, i_m, ux3, uy3, ux1, uy1, i_gpu);
+
 	if (i_gpu)
 	{
-		ProjectFinish << <gridSize, blockSize >> > (i_n, i_m, 1.0 / i_n, ux3, uy3, p1, ux1, uy1);
 		cudaMemcpy(o_ux, ux1, totalSize, cudaMemcpyDeviceToHost);
 		cudaMemcpy(o_uy, uy1, totalSize, cudaMemcpyDeviceToHost);
+		Fluid::Computation::SetBoundry(i_n, i_m, o_ux, 1, true);
+		Fluid::Computation::SetBoundry(i_n, i_m, o_uy, 2, true);
 	}
 	else
 	{
-		Fluid::Computation::ProjectFinish(i_n, i_m, 1.0 / i_n, ux3, uy3, p1, ux1, uy1);
 		cudaMemcpy(o_ux, ux1, totalSize, cudaMemcpyHostToHost);
 		cudaMemcpy(o_uy, uy1, totalSize, cudaMemcpyHostToHost);
 		Fluid::Computation::SetBoundry(i_n, i_m, o_ux, 1, true);
