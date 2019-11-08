@@ -173,7 +173,7 @@ void StableFluidWidget::paintGL()
 	{
 		if (!m_firstTime)
 		{
-			m_forceVector = (m_mousePositionForVelocity - m_previousMousePositionForVelocity) * 50;
+			m_forceVector = (m_mousePositionForVelocity - m_previousMousePositionForVelocity) * 60000;
 		}
 		m_firstTime = false;
 	}
@@ -181,6 +181,8 @@ void StableFluidWidget::paintGL()
 	CalculateNewVelocity(m_height, m_width, m_velocityX, m_velocityY, m_deltaTime, m_vicosityParam, m_forceExponentParam, m_mousePositionForVelocity, m_forceVector, m_isGPU);
 	m_program.setUniformValue("i_time", (float)m_time);
 	m_program.setUniformValue("i_deltaTime", (float)m_deltaTime);
+	m_program.setUniformValue("i_width", (float)m_width);
+	m_program.setUniformValue("i_height", (float)m_height);
 	m_program.setUniformValue("i_forceOrigin", m_mousePositionForScreen + (!m_isPressed) * QVector2D(2.0,2.0));
 	m_program.setUniformValue("i_forceExponent",300.0f);
 

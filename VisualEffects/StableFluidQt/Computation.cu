@@ -38,8 +38,8 @@ void Advect(int i_n,
 {
     int i = clamp(blockIdx.x * blockDim.x + threadIdx.x + 1, 1, i_n);
     int j = clamp(blockIdx.y * blockDim.y + threadIdx.y + 1, 1, i_m);
-	float bx = i - i_deltaTime * i_ux[get1Dpos(i, j, i_m + 2)] * i_n;
-	float by = j - i_deltaTime * i_uy[get1Dpos(i, j, i_m + 2)] * i_m;
+	float bx = i - i_deltaTime * i_ux[get1Dpos(i, j, i_m + 2)];
+	float by = j - i_deltaTime * i_uy[get1Dpos(i, j, i_m + 2)];
 	bx = clamp(bx, 0.5, i_n + 0.5);
 	by = clamp(by, 0.5, i_m + 0.5);
 
