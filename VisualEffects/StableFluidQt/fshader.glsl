@@ -11,10 +11,12 @@ uniform float i_time;
 uniform float i_deltaTime;
 uniform vec2 i_forceOrigin;
 uniform float i_forceExponent;
+uniform float i_width;
+uniform float i_height;
 void main()
 {
     
-    vec3 color = texture2D(texture, v_texcoord - vec2(v_speed.y * i_deltaTime, v_speed.x * i_deltaTime));
+    vec3 color = texture2D(texture, v_texcoord - vec2(v_speed.y * i_deltaTime / i_width, v_speed.x * i_deltaTime / i_height));
 
     vec3 dye = saturate(sin(i_time * vec3(2.72, 5.12, 4.98)) + 0.5);
     vec2 pos = v_texcoord;

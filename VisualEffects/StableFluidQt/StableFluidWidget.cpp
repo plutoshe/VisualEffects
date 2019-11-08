@@ -19,7 +19,7 @@ StableFluidWidget::StableFluidWidget(QWidget* parent) :
 	m_isPressed = false;
 	m_width = 100;
 	m_height = 100;
-	m_isGPU = false;
+	m_isGPU = true;
 	makeCurrent();
 }
 
@@ -171,7 +171,7 @@ void StableFluidWidget::paintGL()
 	{
 		if (!m_firstTime)
 		{
-			m_forceVector = (m_mousePositionForVelocity - m_previousMousePositionForVelocity) * 50;
+			m_forceVector = (m_mousePositionForVelocity - m_previousMousePositionForVelocity) * 20000;
 		}
 		m_firstTime = false;
 	}
@@ -181,6 +181,8 @@ void StableFluidWidget::paintGL()
 	m_program.setUniformValue("i_deltaTime", (float)m_deltaTime);
 	m_program.setUniformValue("i_forceOrigin", m_mousePositionForScreen + (!m_isPressed) * QVector2D(2.0,2.0));
 	m_program.setUniformValue("i_forceExponent",300.0f);
+	m_program.setUniformValue("i_width", (float)m_width);
+	m_program.setUniformValue("i_height", (float)m_height);
 
 
 

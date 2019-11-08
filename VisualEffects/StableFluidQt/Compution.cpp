@@ -23,8 +23,8 @@ void Fluid::Computation::Advect(int i_n, int i_m, float i_deltaTime, const float
 	{
 		for (int j = 1; j <= i_m; j++)
 		{
-			float bx = i - i_deltaTime * i_ux[get1Dpos(i, j, i_m + 2)] * i_n;
-			float by = j - i_deltaTime * i_uy[get1Dpos(i, j, i_m + 2)] * i_m;
+			float bx = i - i_deltaTime * i_ux[get1Dpos(i, j, i_m + 2)];
+			float by = j - i_deltaTime * i_uy[get1Dpos(i, j, i_m + 2)];
 			bx = Clamp(bx, 0.5, i_n + 0.5);
 			by = Clamp(by, 0.5, i_m + 0.5);
 			
