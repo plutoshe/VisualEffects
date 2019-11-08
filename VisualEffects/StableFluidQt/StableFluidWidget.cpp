@@ -17,9 +17,9 @@ StableFluidWidget::StableFluidWidget(QWidget* parent) :
 	m_texture(0)
 {
 	m_isPressed = false;
-	m_width = 200;
-	m_height = 200;
-	m_isGPU = true;
+	m_width = 100;
+	m_height = 100;
+	m_isGPU = false;
 	makeCurrent();
 }
 
@@ -59,18 +59,19 @@ void StableFluidWidget::initGeometry()
 	m_indexBuf.bind();
 	m_indexBuf.allocate(&m_geometry.m_indices[0], m_geometry.m_indices.size() * sizeof(GLuint));
 
-	m_speedXBuf.create();
-	m_speedXBuf.bind();
+
 	
 	int size = (m_height + 2) * (m_width + 2);
 	m_velocityX = new float[size];
 	m_velocityY = new float[size];
 	memset(m_velocityX, 0, size * sizeof(float));
 	memset(m_velocityY, 0, size * sizeof(float));
+	m_speedXBuf.create();
+	m_speedXBuf.bind();
 	m_speedXBuf.allocate(m_velocityX, m_geometry.m_vertices.size() * sizeof(GLfloat));
 	m_speedYBuf.create();
 	m_speedYBuf.bind();
-	m_speedYBuf.allocate(m_velocityX, m_geometry.m_vertices.size() * sizeof(GLfloat));
+	m_speedYBuf.allocate(m_velocityY, m_geometry.m_vertices.size() * sizeof(GLfloat));
 
 }
 
@@ -111,7 +112,7 @@ void StableFluidWidget::initShaders()
 
 void StableFluidWidget::initTextures()
 {
-	m_texture = new QOpenGLTexture(QImage("cube1.jpg").mirrored());
+	m_texture = new QOpenGLTexture(QImage("cube2.png").mirrored());
 	m_texture->setMinificationFilter(QOpenGLTexture::Nearest);
 	m_texture->setMagnificationFilter(QOpenGLTexture::Linear);
 	m_texture->setWrapMode(QOpenGLTexture::Repeat);
@@ -212,8 +213,8 @@ void StableFluidWidget::paintGL()
 		int speedXLocation = m_program.attributeLocation("i_speedX");
 		m_program.enableAttributeArray(speedXLocation);
 		m_program.setAttributeBuffer(speedXLocation, GL_FLOAT, 0, 1, sizeof(GLfloat));
-		m_speedYBuf.bind();
 
+		m_speedYBuf.bind();
 		int speedYLocation = m_program.attributeLocation("i_speedY");
 		m_program.enableAttributeArray(speedYLocation);
 		m_program.setAttributeBuffer(speedYLocation, GL_FLOAT, 0, 1, sizeof(GLfloat));
@@ -230,9 +231,10 @@ void StableFluidWidget::paintGL()
 	else
 	{
 	
-
+		m_texture->bind();
+		m_speedXBuf.bind();
 		m_speedXBuf.write(0, m_velocityX, m_geometry.m_vertices.size() * sizeof(GLfloat));
-
+		m_speedYBuf.bind();
 		m_speedYBuf.write(0, m_velocityY, m_geometry.m_vertices.size() * sizeof(GLfloat));
 		glBindTexture(GL_TEXTURE_2D, m_renderTexture1->texture());
 		m_renderTexture1->bind();

@@ -54,7 +54,7 @@ void Fluid::Computation::Diffuse(int i_n, int i_m, float i_alpha, float i_beta, 
 				i_grid[get1Dpos(i - 1, j, i_m + 2)] + 
 				i_grid[get1Dpos(i, j - 1, i_m + 2)] + 
 				i_grid[get1Dpos(i + 1, j, i_m + 2)] + 
-				i_grid[get1Dpos(i, j + 1, i_m + 2)]) / i_beta;
+				i_grid[get1Dpos(i, j + 1, i_m + 2)]) * i_beta;
 		}
 	}
 }
@@ -103,7 +103,7 @@ void Fluid::Computation::ProjectStart(int i_n, int i_m, float i_h, const float* 
 	for (int i = 1; i <= i_n; i++) {
 		for (int j = 1; j <= i_m; j++) {
 			o_div[get1Dpos(i, j, i_m + 2)] =
-				-0.5f * i_h * (
+				-i_h * (
 					i_ux[get1Dpos(i + 1, j, i_m + 2)] -
 					i_ux[get1Dpos(i - 1, j, i_m + 2)] +
 					i_uy[get1Dpos(i, j + 1, i_m + 2)] -
@@ -117,42 +117,18 @@ void Fluid::Computation::ProjectStart(int i_n, int i_m, float i_h, const float* 
 
 void Fluid::Computation::ProjectFinish(int i_n, int i_m, float i_h, const float* const i_ux, const float* const i_uy, const float* const i_p, float* o_ux, float* o_uy)
 {
+	//double halfrdx = 0.5 / i_h;
 	for (int i = 1; i <= i_n; i++) {
 		for (int j = 1; j <= i_m; j++) {
-			float p1 = i_p[get1Dpos(std::max(1, i - 1), j, i_m + 2)];
-			float p2 = i_p[get1Dpos(std::min(i + 1, i_n), j, i_m + 2)];
-			float p3 = i_p[get1Dpos(i, std::max(1, j - 1), i_m + 2)];
-			float p4 = i_p[get1Dpos(i, std::min(i_m, j + 1), i_m + 2)];
-			float ux = i_ux[get1Dpos(i, j, i_m + 2)] - 0.5 * (p2 - p1) / i_h;
-			float uy = i_uy[get1Dpos(i, j, i_m + 2)] - 0.5 * (p4 - p3) / i_h;
+			float p1 = i_p[get1Dpos(i - 1, j, i_m + 2)];
+			float p2 = i_p[get1Dpos(i + 1, j, i_m + 2)];
+			float p3 = i_p[get1Dpos(i, j - 1, i_m + 2)];
+			float p4 = i_p[get1Dpos(i, j + 1, i_m + 2)];
+			float ux = i_ux[get1Dpos(i, j, i_m + 2)] - i_h * (p2 - p1);
+			float uy = i_uy[get1Dpos(i, j, i_m + 2)] - i_h * (p4 - p3);
 			o_ux[get1Dpos(i, j, i_m + 2)] = ux;
 			o_uy[get1Dpos(i, j, i_m + 2)] = uy;
-			/*if (i == 1)
-			{
-				o_ux[get1Dpos(0, j, i_m + 2)] = -ux;
-				o_uy[get1Dpos(0, j, i_m + 2)] = uy;
-			}
-			if (i == i_n)
-			{
-				o_ux[get1Dpos(0, j, i_m + 2)] = -ux;
-				o_uy[get1Dpos(0, j, i_m + 2)] = uy;
-			}
-			if (j == 1)
-			{
-				o_ux[get1Dpos(0, j, i_m + 2)] = ux;
-				o_uy[get1Dpos(0, j, i_m + 2)] = -uy;
-			}
-			if (j == i_m)
-			{
-				o_ux[get1Dpos(0, j, i_m + 2)] = ux;
-				o_uy[get1Dpos(0, j, i_m + 2)] = -uy;
-			}*/
 		}	
 	}
-
-	//o_v[get1Dpos(0, 0, i_m + 2)] = 0.5 * (o_v[get1Dpos(1, 0, i_m + 2)] + o_v[get1Dpos(0, 1, i_m + 2)]);
-	//o_v[get1Dpos(0, i_m + 1, i_m + 2)] = 0.5 * (o_v[get1Dpos(1, i_m + 1, i_m + 2)] + o_v[get1Dpos(0, i_m, i_m + 2)]);
-	//o_v[get1Dpos(i_n + 1, 0, i_m + 2)] = 0.5 * (o_v[get1Dpos(i_n, 0, i_m + 2)] + o_v[get1Dpos(i_n + 1, 1, i_m + 2)]);
-	//o_v[get1Dpos(i_n + 1, i_m + 1, i_m + 2)] = 0.5 * (o_v[get1Dpos(i_n, i_m + 1, i_m + 2)] + o_v[get1Dpos(i_n + 1, i_m, i_m + 2)]);
 }
  
