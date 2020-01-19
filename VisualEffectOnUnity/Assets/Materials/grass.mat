@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: grass
-  m_Shader: {fileID: 4800000, guid: e4fb7fd556c9e2e48ae2bb632ff744df, type: 3}
+  m_Shader: {fileID: 4800000, guid: c34a59752133def40b5e634424fdcb01, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -73,6 +73,7 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
+    - _InfluenceRadius: 5
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
@@ -86,6 +87,7 @@ Material:
     - _Color: {r: 0.16756536, g: 0.7075472, b: 0.02336242, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Flip: {r: 1, g: 1, b: 1, a: 1}
+    - _InfluencePosition: {r: 54.56593, g: 8.86, b: 8.99725, a: 0}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
     - _WaveControl: {r: 1, g: 0, b: 2, a: 300}
     - _WindControl: {r: 0.01, g: 0, b: 0.15, a: 0.1}
