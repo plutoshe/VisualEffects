@@ -1268,7 +1268,7 @@ MonoBehaviour:
   speedX: 1
   speedZ: 1
   grassIndentMat: {fileID: 2100000, guid: 69f1caf7f44c17f41afcbcb550a84c3b, type: 2}
-  InfluenceRadius: 5
+  InfluenceRadius: 13
 --- !u!135 &200994453
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -1335,7 +1335,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 200994451}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 59.56593, y: 8.86, z: 6.997249}
+  m_LocalPosition: {x: 59.56593, y: 8.86, z: 94.1}
   m_LocalScale: {x: 20, y: 20, z: 20}
   m_Children: []
   m_Father: {fileID: 0}
