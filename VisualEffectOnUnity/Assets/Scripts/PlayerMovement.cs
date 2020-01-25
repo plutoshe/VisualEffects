@@ -4,15 +4,18 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public int speedX = 1;
-    public int speedZ = 1;
+    public float speedX = 1;
+    public float speedZ = 1;
     public Material grassIndentMat = null;
     public float InfluenceRadius = 5.0f;
 
     // Start is called before the first frame update
     void Start()
     {
-        grassIndentMat.SetFloat("_InfluenceRadius", InfluenceRadius);
+        if (grassIndentMat)
+        {
+            grassIndentMat.SetFloat("_InfluenceRadius", InfluenceRadius);
+        }
     }
 
     // Update is called once per frame
@@ -37,6 +40,9 @@ public class PlayerMovement : MonoBehaviour
             Offset.x = speedX;
         }
         transform.position = Offset + oldPosition;
-        grassIndentMat.SetVector("_InfluencePosition", transform.position);
+        if (grassIndentMat)
+        {
+            grassIndentMat.SetVector("_InfluencePosition", transform.position);
+        }
     }
 }

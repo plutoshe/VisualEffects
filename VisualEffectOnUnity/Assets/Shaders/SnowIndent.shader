@@ -56,13 +56,15 @@
             fixed4 _GroundColor;
             sampler2D _NormalMap;
         
-
+ 
             void surf(Input IN, inout SurfaceOutput o) {
                 half heightRatio = tex2Dlod(_HeightTex, float4(IN.uv_HeightTex, 0, 0)).r;
                 half4 c = lerp(tex2D(_SnowTex, IN.uv_SnowTex) * _SnowColor, tex2D(_GroundTex, IN.uv_GroundTex) * _GroundColor, heightRatio);
                 o.Albedo = c.rgb;
-                o.Specular = 0.2;
-                o.Gloss = 1.0;
+                // Metallic and smoothness come from slider variables
+                //o.Metallic = _Metallic;
+               // o.Smoothness = _Glossiness;
+                o.Alpha = c.a;
                 o.Normal = UnpackNormal(tex2D(_NormalMap, IN.uv_SnowTex));
             }
             ENDCG
